@@ -1,0 +1,5 @@
+[project]
+name = "tinygs-tle-creator"
+version = "0.1.0"
+requires-python = ">=3.10"
+description = "Fit a TLE for PROVES Electra from TinyGS Doppler reception data"

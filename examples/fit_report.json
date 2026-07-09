@@ -1,0 +1,1032 @@
+{
+  "generated_utc": "2026-07-09T02:21:24.088888+00:00",
+  "n_packet_files": 186,
+  "n_obs_loaded": 1087,
+  "n_obs_used": 775,
+  "n_obs_rejected": 312,
+  "n_stations_used": 238,
+  "n_passes_used": 20,
+  "data_span_utc": [
+    "2026-07-08T02:16:55.933260+00:00",
+    "2026-07-08T21:42:32.154724+00:00"
+  ],
+  "observable_sign": -1,
+  "residual_rms_hz": 91.5,
+  "residual_rms_hz_dM_only": 261.2,
+  "parameters_fit": {
+    "dM": {
+      "value": 0.3064592442834767,
+      "sigma": 0.0006930524128425596,
+      "significant_2sigma": true
+    },
+    "dn": {
+      "value": 5.227954624750938e-05,
+      "sigma": 5.717031390791683e-07,
+      "significant_2sigma": true
+    }
+  },
+  "parameters_held_at_reference": [
+    "dRAAN",
+    "dinc",
+    "decc",
+    "dargp"
+  ],
+  "published_parameters": [
+    "dM",
+    "dn"
+  ],
+  "published_deltas": {
+    "dM": 0.3064592442834767,
+    "dn": 5.227954624750938e-05
+  },
+  "published_rms_hz": 91.5,
+  "rejection_breakdown": {
+    "under_observed_station": 187,
+    "residual_outlier": 125
+  },
+  "derived": {
+    "dM_deg": 17.5588,
+    "along_track_time_offset_s": -272.07,
+    "dn_rev_per_day": 0.01198159,
+    "mean_motion_rev_per_day": 15.50131531
+  },
+  "station_biases_hz": {
+    "2E0UFC_1": {
+      "bias_hz": -5291.7,
+      "n_obs": 2
+    },
+    "3StepLex": {
+      "bias_hz": -6300.8,
+      "n_obs": 5
+    },
+    "AC4JG": {
+      "bias_hz": -6360.3,
+      "n_obs": 4
+    },
+    "AD7UI": {
+      "bias_hz": -5089.6,
+      "n_obs": 3
+    },
+    "AD7UI_D": {
+      "bias_hz": -5540.6,
+      "n_obs": 2
+    },
+    "AD8FD_433": {
+      "bias_hz": -6445.0,
+      "n_obs": 4
+    },
+    "AE0BB": {
+      "bias_hz": -5740.6,
+      "n_obs": 3
+    },
+    "AJ4ZS": {
+      "bias_hz": -5989.8,
+      "n_obs": 3
+    },
+    "AJW2025": {
+      "bias_hz": -5366.7,
+      "n_obs": 7
+    },
+    "ALKBBS1": {
+      "bias_hz": -4929.9,
+      "n_obs": 3
+    },
+    "ALKBBS3": {
+      "bias_hz": -5198.8,
+      "n_obs": 2
+    },
+    "APD_TinyGS_1": {
+      "bias_hz": -7298.6,
+      "n_obs": 4
+    },
+    "AlbertJenks": {
+      "bias_hz": -5815.6,
+      "n_obs": 5
+    },
+    "AntigonishTinyGS": {
+      "bias_hz": -6530.9,
+      "n_obs": 4
+    },
+    "Antofalinux": {
+      "bias_hz": -5956.1,
+      "n_obs": 6
+    },
+    "Antofalinux2": {
+      "bias_hz": -5272.9,
+      "n_obs": 2
+    },
+    "Arasaka_TinyGS": {
+      "bias_hz": -6859.4,
+      "n_obs": 3
+    },
+    "ArboryGS01": {
+      "bias_hz": -5071.1,
+      "n_obs": 4
+    },
+    "ArgusNavis": {
+      "bias_hz": -6402.5,
+      "n_obs": 3
+    },
+    "AtticusGS": {
+      "bias_hz": -7899.5,
+      "n_obs": 3
+    },
+    "Aurora": {
+      "bias_hz": -6153.6,
+      "n_obs": 3
+    },
+    "BTC_4H": {
+      "bias_hz": -5930.6,
+      "n_obs": 3
+    },
+    "Black_GS1": {
+      "bias_hz": -5886.6,
+      "n_obs": 2
+    },
+    "Brysac_GS02": {
+      "bias_hz": -5784.7,
+      "n_obs": 2
+    },
+    "CR7BTM_400Mhz": {
+      "bias_hz": -5039.9,
+      "n_obs": 6
+    },
+    "CR7BTM_433Mhz_2": {
+      "bias_hz": -4955.0,
+      "n_obs": 5
+    },
+    "CT7ABP": {
+      "bias_hz": -8036.7,
+      "n_obs": 7
+    },
+    "Cantab": {
+      "bias_hz": -5400.9,
+      "n_obs": 2
+    },
+    "CarlGS": {
+      "bias_hz": -6425.9,
+      "n_obs": 2
+    },
+    "CasaMagnifica_UHF": {
+      "bias_hz": -6166.2,
+      "n_obs": 2
+    },
+    "DC3YC_PG": {
+      "bias_hz": -7560.7,
+      "n_obs": 3
+    },
+    "DG4GAT_70cm": {
+      "bias_hz": -6607.6,
+      "n_obs": 3
+    },
+    "DJ9FBA_2": {
+      "bias_hz": -5736.3,
+      "n_obs": 2
+    },
+    "DK2DB_2": {
+      "bias_hz": -6424.6,
+      "n_obs": 2
+    },
+    "DL2JFL": {
+      "bias_hz": -5743.2,
+      "n_obs": 2
+    },
+    "DLHTinyGS": {
+      "bias_hz": -6863.1,
+      "n_obs": 2
+    },
+    "DO1MVC": {
+      "bias_hz": -5689.8,
+      "n_obs": 2
+    },
+    "DomituxGS": {
+      "bias_hz": -5086.5,
+      "n_obs": 3
+    },
+    "E21NZC_CM_433": {
+      "bias_hz": -5512.7,
+      "n_obs": 2
+    },
+    "EA1M": {
+      "bias_hz": -6102.9,
+      "n_obs": 2
+    },
+    "EA3GKP_Taucho": {
+      "bias_hz": -5699.7,
+      "n_obs": 4
+    },
+    "EA4GGL_heltec_433": {
+      "bias_hz": -5512.4,
+      "n_obs": 5
+    },
+    "EA5CYA": {
+      "bias_hz": -5081.6,
+      "n_obs": 4
+    },
+    "EA7KFV": {
+      "bias_hz": -5968.4,
+      "n_obs": 5
+    },
+    "EA8VD": {
+      "bias_hz": -5717.1,
+      "n_obs": 2
+    },
+    "EB1AYW": {
+      "bias_hz": -6626.9,
+      "n_obs": 2
+    },
+    "EnduroDriverTinyGS_436MHz": {
+      "bias_hz": -7281.8,
+      "n_obs": 3
+    },
+    "F21467": {
+      "bias_hz": -4859.1,
+      "n_obs": 2
+    },
+    "F4AJE": {
+      "bias_hz": -4722.9,
+      "n_obs": 2
+    },
+    "F6ASPtg": {
+      "bias_hz": -5451.0,
+      "n_obs": 3
+    },
+    "G0AKH_TinyGS": {
+      "bias_hz": -4861.5,
+      "n_obs": 2
+    },
+    "G1WYA_RicksSat": {
+      "bias_hz": -5251.7,
+      "n_obs": 2
+    },
+    "G4EDW": {
+      "bias_hz": -4647.3,
+      "n_obs": 3
+    },
+    "G4HLX": {
+      "bias_hz": -4963.1,
+      "n_obs": 2
+    },
+    "G4OXN_GS": {
+      "bias_hz": -6192.1,
+      "n_obs": 4
+    },
+    "G4TNX": {
+      "bias_hz": -5764.0,
+      "n_obs": 6
+    },
+    "G4USI_1": {
+      "bias_hz": -5047.8,
+      "n_obs": 8
+    },
+    "G4WTV": {
+      "bias_hz": -4251.4,
+      "n_obs": 2
+    },
+    "G6GEV": {
+      "bias_hz": -4862.4,
+      "n_obs": 3
+    },
+    "G7GQA_433_B": {
+      "bias_hz": -5385.8,
+      "n_obs": 2
+    },
+    "G8EQY_2": {
+      "bias_hz": -4819.7,
+      "n_obs": 4
+    },
+    "GI0AZB": {
+      "bias_hz": -5123.7,
+      "n_obs": 3
+    },
+    "GM8lkl_433d": {
+      "bias_hz": -5469.7,
+      "n_obs": 2
+    },
+    "GSNFN904_2": {
+      "bias_hz": -5118.6,
+      "n_obs": 4
+    },
+    "GURB_Ground_Station": {
+      "bias_hz": -5051.3,
+      "n_obs": 4
+    },
+    "GVAZ2": {
+      "bias_hz": -4289.4,
+      "n_obs": 2
+    },
+    "GarethTinyGS": {
+      "bias_hz": -4717.4,
+      "n_obs": 2
+    },
+    "GaviG_TinyGS_Station": {
+      "bias_hz": -6412.6,
+      "n_obs": 2
+    },
+    "Geo_TTGO_433": {
+      "bias_hz": -5217.5,
+      "n_obs": 4
+    },
+    "HB9EHD_TinyGS": {
+      "bias_hz": -7207.3,
+      "n_obs": 2
+    },
+    "HB9FND_P": {
+      "bias_hz": -5885.0,
+      "n_obs": 3
+    },
+    "HN17457": {
+      "bias_hz": -6204.8,
+      "n_obs": 4
+    },
+    "HS6NDK_STI": {
+      "bias_hz": -6124.3,
+      "n_obs": 2
+    },
+    "Hermosa_433a": {
+      "bias_hz": -5091.8,
+      "n_obs": 3
+    },
+    "Hyperborea1_Rye": {
+      "bias_hz": -4373.3,
+      "n_obs": 5
+    },
+    "I6IQX": {
+      "bias_hz": -6713.3,
+      "n_obs": 2
+    },
+    "JMRJ_M7TAS": {
+      "bias_hz": -5131.8,
+      "n_obs": 3
+    },
+    "JimCanjo": {
+      "bias_hz": -5219.4,
+      "n_obs": 4
+    },
+    "JohnjoeGS01": {
+      "bias_hz": -5406.2,
+      "n_obs": 2
+    },
+    "K0DSP_tgs": {
+      "bias_hz": -4734.3,
+      "n_obs": 2
+    },
+    "K5DKB_433_Brazos_TX": {
+      "bias_hz": -4602.3,
+      "n_obs": 2
+    },
+    "K5KGT_TinyGS": {
+      "bias_hz": -5009.8,
+      "n_obs": 3
+    },
+    "K6PBKv3": {
+      "bias_hz": -4778.4,
+      "n_obs": 3
+    },
+    "K7AGE2": {
+      "bias_hz": -5699.5,
+      "n_obs": 4
+    },
+    "K8EC": {
+      "bias_hz": -4250.5,
+      "n_obs": 3
+    },
+    "K8LT_433_1": {
+      "bias_hz": -5115.2,
+      "n_obs": 10
+    },
+    "KA1FT": {
+      "bias_hz": -5962.2,
+      "n_obs": 2
+    },
+    "KA1SRS_433_H": {
+      "bias_hz": -4593.0,
+      "n_obs": 4
+    },
+    "KB5ZUR_13SRanch": {
+      "bias_hz": -4777.7,
+      "n_obs": 3
+    },
+    "KC0EFC_433MHz_03": {
+      "bias_hz": -4785.0,
+      "n_obs": 2
+    },
+    "KC1JMf": {
+      "bias_hz": -6492.7,
+      "n_obs": 8
+    },
+    "KC8GRQ_1_433": {
+      "bias_hz": -6359.3,
+      "n_obs": 2
+    },
+    "KD5QHB": {
+      "bias_hz": -4296.1,
+      "n_obs": 2
+    },
+    "KD8AZW": {
+      "bias_hz": -5690.5,
+      "n_obs": 6
+    },
+    "KD8VRQ_2": {
+      "bias_hz": -4614.4,
+      "n_obs": 2
+    },
+    "KE0JTS": {
+      "bias_hz": -5211.8,
+      "n_obs": 3
+    },
+    "KE7HR_TinyGS": {
+      "bias_hz": -6131.9,
+      "n_obs": 3
+    },
+    "KF4PJH_GS": {
+      "bias_hz": -5449.8,
+      "n_obs": 5
+    },
+    "KG4EUF_433_T_1": {
+      "bias_hz": -5913.8,
+      "n_obs": 4
+    },
+    "KG5GNQ": {
+      "bias_hz": -4372.2,
+      "n_obs": 4
+    },
+    "KI5BAB_433": {
+      "bias_hz": -6425.9,
+      "n_obs": 4
+    },
+    "KI7UMR": {
+      "bias_hz": -4851.7,
+      "n_obs": 5
+    },
+    "KJ4TDM": {
+      "bias_hz": -4689.5,
+      "n_obs": 2
+    },
+    "KJ7OCP_TinyGS_433": {
+      "bias_hz": -6931.6,
+      "n_obs": 6
+    },
+    "KK6NOWPD": {
+      "bias_hz": -5557.0,
+      "n_obs": 2
+    },
+    "KK7OIWgs": {
+      "bias_hz": -5231.9,
+      "n_obs": 5
+    },
+    "KK7OVF_PDX": {
+      "bias_hz": -5602.3,
+      "n_obs": 3
+    },
+    "KM6JZN_433": {
+      "bias_hz": -5372.1,
+      "n_obs": 3
+    },
+    "KM6MZM_TinyGS": {
+      "bias_hz": -4546.9,
+      "n_obs": 2
+    },
+    "KN4GDXomni": {
+      "bias_hz": -5779.6,
+      "n_obs": 2
+    },
+    "KN4HZ": {
+      "bias_hz": -5964.0,
+      "n_obs": 5
+    },
+    "KN4VUQ": {
+      "bias_hz": -6312.7,
+      "n_obs": 2
+    },
+    "Kalvin_Leon": {
+      "bias_hz": -6012.0,
+      "n_obs": 3
+    },
+    "KenFL": {
+      "bias_hz": -4423.0,
+      "n_obs": 2
+    },
+    "LaikasLair": {
+      "bias_hz": -5440.6,
+      "n_obs": 4
+    },
+    "LauHPS433": {
+      "bias_hz": -5966.3,
+      "n_obs": 2
+    },
+    "LorreMewsMK": {
+      "bias_hz": -5122.3,
+      "n_obs": 3
+    },
+    "M0KKA": {
+      "bias_hz": -4450.1,
+      "n_obs": 2
+    },
+    "M0KVO": {
+      "bias_hz": -5406.3,
+      "n_obs": 4
+    },
+    "M0SUC": {
+      "bias_hz": -4667.8,
+      "n_obs": 3
+    },
+    "M0WVE_433b": {
+      "bias_hz": -7191.4,
+      "n_obs": 2
+    },
+    "M5JFS": {
+      "bias_hz": -5946.7,
+      "n_obs": 3
+    },
+    "M7DDU_tinygs": {
+      "bias_hz": -5156.1,
+      "n_obs": 2
+    },
+    "M7GBC": {
+      "bias_hz": -4711.0,
+      "n_obs": 2
+    },
+    "MDK_NVR2": {
+      "bias_hz": -5811.7,
+      "n_obs": 2
+    },
+    "MXFRN_24": {
+      "bias_hz": -3789.6,
+      "n_obs": 2
+    },
+    "MicroBugGS": {
+      "bias_hz": -6049.0,
+      "n_obs": 5
+    },
+    "MountaineerGS": {
+      "bias_hz": -6302.0,
+      "n_obs": 6
+    },
+    "N0URB_1": {
+      "bias_hz": -6790.1,
+      "n_obs": 4
+    },
+    "N0YKM": {
+      "bias_hz": -5910.8,
+      "n_obs": 2
+    },
+    "N0YOX": {
+      "bias_hz": -6599.8,
+      "n_obs": 2
+    },
+    "N1GMJ": {
+      "bias_hz": -5316.9,
+      "n_obs": 6
+    },
+    "N1PDG": {
+      "bias_hz": -5443.4,
+      "n_obs": 2
+    },
+    "N3OB_gs2": {
+      "bias_hz": -8129.5,
+      "n_obs": 4
+    },
+    "N4SRNtinyGS": {
+      "bias_hz": -7391.8,
+      "n_obs": 2
+    },
+    "N5MLW_TinyGS": {
+      "bias_hz": -5590.6,
+      "n_obs": 4
+    },
+    "N5SKTgs": {
+      "bias_hz": -4379.6,
+      "n_obs": 4
+    },
+    "N6PAZ": {
+      "bias_hz": -6966.5,
+      "n_obs": 2
+    },
+    "NI6D_433GS": {
+      "bias_hz": -6310.1,
+      "n_obs": 6
+    },
+    "NJ6E_70cm": {
+      "bias_hz": -6205.3,
+      "n_obs": 2
+    },
+    "NeoGS2": {
+      "bias_hz": -7033.1,
+      "n_obs": 5
+    },
+    "NorthArlingtonAirport": {
+      "bias_hz": -6672.8,
+      "n_obs": 3
+    },
+    "NvSatgs": {
+      "bias_hz": -6735.0,
+      "n_obs": 4
+    },
+    "OE6DJG": {
+      "bias_hz": -6099.0,
+      "n_obs": 4
+    },
+    "OE6ISP_2": {
+      "bias_hz": -5108.0,
+      "n_obs": 4
+    },
+    "OIBTinyGS": {
+      "bias_hz": -4809.6,
+      "n_obs": 4
+    },
+    "OK5TVR": {
+      "bias_hz": -6380.4,
+      "n_obs": 2
+    },
+    "ON3JMK_9": {
+      "bias_hz": -6332.2,
+      "n_obs": 3
+    },
+    "ON4CCO_GS": {
+      "bias_hz": -5127.0,
+      "n_obs": 2
+    },
+    "ON6ZQ_2": {
+      "bias_hz": -5582.1,
+      "n_obs": 2
+    },
+    "ON8CL": {
+      "bias_hz": -6135.1,
+      "n_obs": 2
+    },
+    "PERRIXA": {
+      "bias_hz": -4626.6,
+      "n_obs": 2
+    },
+    "PI6SHB": {
+      "bias_hz": -5905.1,
+      "n_obs": 5
+    },
+    "PJE": {
+      "bias_hz": -5304.4,
+      "n_obs": 2
+    },
+    "PTNFCO": {
+      "bias_hz": -5063.4,
+      "n_obs": 5
+    },
+    "PaPaBouy": {
+      "bias_hz": -4797.2,
+      "n_obs": 2
+    },
+    "ParadiseGS1": {
+      "bias_hz": -4985.1,
+      "n_obs": 2
+    },
+    "PulenTechGS": {
+      "bias_hz": -5971.1,
+      "n_obs": 3
+    },
+    "QUIJORNA": {
+      "bias_hz": -6675.1,
+      "n_obs": 2
+    },
+    "RFCanada": {
+      "bias_hz": -4837.0,
+      "n_obs": 3
+    },
+    "RHOD1_TinyGS433": {
+      "bias_hz": -6599.2,
+      "n_obs": 3
+    },
+    "RTQW433": {
+      "bias_hz": -4817.5,
+      "n_obs": 5
+    },
+    "Rockenhausen_DK5WT": {
+      "bias_hz": -7185.8,
+      "n_obs": 4
+    },
+    "RodinaSat": {
+      "bias_hz": -5999.4,
+      "n_obs": 2
+    },
+    "SASKMESH_GS_V1": {
+      "bias_hz": -6957.5,
+      "n_obs": 13
+    },
+    "SDPR_GS": {
+      "bias_hz": -4552.9,
+      "n_obs": 2
+    },
+    "SP8NCG_433": {
+      "bias_hz": -6147.9,
+      "n_obs": 4
+    },
+    "SQ3DVQ": {
+      "bias_hz": -6030.4,
+      "n_obs": 2
+    },
+    "SatFinder_UTT_HS6TUX": {
+      "bias_hz": -5637.0,
+      "n_obs": 3
+    },
+    "Schampi_LILYGO": {
+      "bias_hz": -6488.4,
+      "n_obs": 2
+    },
+    "Siam_GS_2": {
+      "bias_hz": -7132.0,
+      "n_obs": 2
+    },
+    "Siegfried1": {
+      "bias_hz": -8824.1,
+      "n_obs": 5
+    },
+    "SlugGS": {
+      "bias_hz": -6095.3,
+      "n_obs": 4
+    },
+    "Snaps_TinyGS": {
+      "bias_hz": -4951.4,
+      "n_obs": 2
+    },
+    "SonataStationTX_1": {
+      "bias_hz": -4703.0,
+      "n_obs": 4
+    },
+    "StarGate1": {
+      "bias_hz": -6217.3,
+      "n_obs": 5
+    },
+    "Stardust": {
+      "bias_hz": -5017.2,
+      "n_obs": 4
+    },
+    "Studio21Alcaraz_AGSN1": {
+      "bias_hz": -6071.5,
+      "n_obs": 2
+    },
+    "TComm": {
+      "bias_hz": -5586.2,
+      "n_obs": 2
+    },
+    "TGS1": {
+      "bias_hz": -4373.7,
+      "n_obs": 2
+    },
+    "TJB_GS": {
+      "bias_hz": -5652.1,
+      "n_obs": 2
+    },
+    "TJPaquin_Perry_Ohio": {
+      "bias_hz": -4798.0,
+      "n_obs": 4
+    },
+    "TK421": {
+      "bias_hz": -5628.9,
+      "n_obs": 4
+    },
+    "TL_KHIO1_433": {
+      "bias_hz": -5870.8,
+      "n_obs": 4
+    },
+    "TPB433": {
+      "bias_hz": -6099.0,
+      "n_obs": 2
+    },
+    "Taro_Station_1": {
+      "bias_hz": -5175.3,
+      "n_obs": 4
+    },
+    "TechieHut": {
+      "bias_hz": -4989.4,
+      "n_obs": 3
+    },
+    "Tiny50374": {
+      "bias_hz": -5176.4,
+      "n_obs": 2
+    },
+    "TinyGS443": {
+      "bias_hz": -5396.0,
+      "n_obs": 2
+    },
+    "TinyGS_Tally": {
+      "bias_hz": -6575.1,
+      "n_obs": 3
+    },
+    "TinyPHR": {
+      "bias_hz": -4994.0,
+      "n_obs": 4
+    },
+    "Toaster433": {
+      "bias_hz": -5105.6,
+      "n_obs": 2
+    },
+    "Topdog": {
+      "bias_hz": -5424.2,
+      "n_obs": 2
+    },
+    "UK_SWD_2": {
+      "bias_hz": -6454.3,
+      "n_obs": 3
+    },
+    "USAOH01": {
+      "bias_hz": -6088.1,
+      "n_obs": 5
+    },
+    "UT4UYF_433": {
+      "bias_hz": -5785.1,
+      "n_obs": 3
+    },
+    "VA2ZAC": {
+      "bias_hz": -5769.5,
+      "n_obs": 4
+    },
+    "VA3IHSva": {
+      "bias_hz": -5604.8,
+      "n_obs": 7
+    },
+    "VE2DSK": {
+      "bias_hz": -6381.5,
+      "n_obs": 2
+    },
+    "VE2GQF": {
+      "bias_hz": -6116.3,
+      "n_obs": 3
+    },
+    "VE2WW": {
+      "bias_hz": -6545.5,
+      "n_obs": 5
+    },
+    "VE3TTU_4": {
+      "bias_hz": -6319.8,
+      "n_obs": 3
+    },
+    "VE3WNP": {
+      "bias_hz": -7514.9,
+      "n_obs": 3
+    },
+    "VE3WNP_2": {
+      "bias_hz": -6511.0,
+      "n_obs": 2
+    },
+    "VE4CCR": {
+      "bias_hz": -6332.9,
+      "n_obs": 3
+    },
+    "VE5BNC433C": {
+      "bias_hz": -6172.4,
+      "n_obs": 3
+    },
+    "VK1DSH": {
+      "bias_hz": -6050.7,
+      "n_obs": 2
+    },
+    "VK3TFH_433": {
+      "bias_hz": -5163.8,
+      "n_obs": 2
+    },
+    "VK3ZQB_433": {
+      "bias_hz": -6119.9,
+      "n_obs": 3
+    },
+    "VO1BIL_TGS1": {
+      "bias_hz": -5060.5,
+      "n_obs": 2
+    },
+    "VOneHJP": {
+      "bias_hz": -5305.7,
+      "n_obs": 3
+    },
+    "W0TV": {
+      "bias_hz": -4424.7,
+      "n_obs": 3
+    },
+    "W2CXM": {
+      "bias_hz": -4835.6,
+      "n_obs": 3
+    },
+    "W2CXM_2": {
+      "bias_hz": -4222.0,
+      "n_obs": 2
+    },
+    "W5AUG_GS433": {
+      "bias_hz": -4729.3,
+      "n_obs": 2
+    },
+    "W5ITR": {
+      "bias_hz": -4483.8,
+      "n_obs": 8
+    },
+    "W7DTT_EPH_01": {
+      "bias_hz": -4852.4,
+      "n_obs": 5
+    },
+    "W7HAD": {
+      "bias_hz": -5192.7,
+      "n_obs": 2
+    },
+    "W7RCS": {
+      "bias_hz": -5695.5,
+      "n_obs": 3
+    },
+    "W8FOH": {
+      "bias_hz": -5438.6,
+      "n_obs": 3
+    },
+    "WB5PJB_1": {
+      "bias_hz": -5941.2,
+      "n_obs": 2
+    },
+    "WC1N_433": {
+      "bias_hz": -5648.9,
+      "n_obs": 2
+    },
+    "WG0A_1": {
+      "bias_hz": -4983.5,
+      "n_obs": 4
+    },
+    "WO2CC_Home2": {
+      "bias_hz": -5894.6,
+      "n_obs": 4
+    },
+    "WWWX_433": {
+      "bias_hz": -6779.3,
+      "n_obs": 2
+    },
+    "X3NX": {
+      "bias_hz": -5602.2,
+      "n_obs": 2
+    },
+    "YL3GBC": {
+      "bias_hz": -4595.6,
+      "n_obs": 3
+    },
+    "Z81D": {
+      "bias_hz": -5533.0,
+      "n_obs": 3
+    },
+    "babgs": {
+      "bias_hz": -4645.0,
+      "n_obs": 3
+    },
+    "iSimple_Denver": {
+      "bias_hz": -5908.8,
+      "n_obs": 2
+    },
+    "k0okeGS": {
+      "bias_hz": -6113.0,
+      "n_obs": 3
+    },
+    "m0wuk1": {
+      "bias_hz": -4897.3,
+      "n_obs": 2
+    },
+    "qIm_3": {
+      "bias_hz": -5324.1,
+      "n_obs": 3
+    },
+    "sut02": {
+      "bias_hz": -5452.2,
+      "n_obs": 2
+    },
+    "thebaldgeek_433v2": {
+      "bias_hz": -5612.0,
+      "n_obs": 5
+    },
+    "tinygs_natick": {
+      "bias_hz": -4769.3,
+      "n_obs": 2
+    },
+    "va7im_TinyGS2": {
+      "bias_hz": -4647.2,
+      "n_obs": 11
+    },
+    "ve4drk": {
+      "bias_hz": -6800.3,
+      "n_obs": 3
+    }
+  },
+  "satellite_bias_note": "Satellite oscillator bias is NOT separable from station biases with this data; each station bias includes the common satellite offset. Biases are modeled as constants per station.",
+  "correlation_orbit_params": [
+    [
+      1.0,
+      -0.964
+    ],
+    [
+      -0.964,
+      1.0
+    ]
+  ],
+  "roundtrip_tle_max_doppler_diff_hz": 0.06,
+  "tle": [
+    "1 99999U 26999A   26188.50835634  .00005806  00000-0  11369-3 0  9991",
+    "2 99999  51.6304 199.5144 0006687 267.6545 109.9266 15.50131531574904"
+  ],
+  "reference_tle": [
+    "1 25544U 98067A   26188.50835634  .00005806  00000-0  11369-3 0  9991",
+    "2 25544  51.6304 199.5144 0006687 267.6545  92.3678 15.48933372574901"
+  ],
+  "caveats": [
+    "dM and dn are highly correlated (r=-0.964); only their combination is observed.",
+    "Out-of-plane elements (inclination, RAAN) and eccentricity/argp held at ISS values; single-frequency Doppler from few passes cannot separate them yet.",
+    "Station altitudes assumed 100 m; timing from station clocks (NTP quality). Sub-second timing errors map to tens of Hz of Doppler error near TCA."
+  ]
+}
