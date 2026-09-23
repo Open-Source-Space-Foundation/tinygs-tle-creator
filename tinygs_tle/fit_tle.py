@@ -10,9 +10,15 @@ parameters the data can actually constrain.
 Usage:
     fit_tle.py --details-dir /path/to/details --out /path/to/outdir
                [--fit dM,dn] [--ref-tle file] [--min-station-obs 2]
+               [--f0 437.4e6] [--since-days N] [--min-obs 20]
+               [--norad N] [--intl YYNNNA] [--output-stem surv_proves]
+
+Exits 0 without writing anything (printing `SKIP: only N observations`) if
+fewer than --min-obs observations remain after --since-days filtering.
 
 Outputs (in --out):
-    surv_proves.tle   candidate TLE (NORAD 99999, intl designator 26999A)
+    <stem>.tle        candidate TLE (NORAD/intl designator from --norad/--intl,
+                      else from the --ref-tle line 1, else 99999/26999A)
     fit_report.txt    human-readable fit report
     fit_report.json   machine-readable fit report
 """
@@ -390,7 +396,8 @@ def make_tle(ref_l1, ref_l2, ref, deltas, satnum=99999, intldes="26999A"):
 
     ndot/nddot/bstar/epoch fields are copied verbatim from the reference line 1.
     """
-    l1 = f"1 {satnum:05d}U {intldes:<8s} " + ref_l1[18:64] + " 999"
+    satnum = str(satnum).strip().zfill(5)  # also accepts Alpha-5 ("A1234")
+    l1 = f"1 {satnum}U {intldes:<8s} " + ref_l1[18:64] + " 999"
     l1 = l1[:68] + str(tle_checksum(l1[:68]))
     incl = math.degrees(ref.inclo + deltas.get("dinc", 0.0))
     raan = math.degrees(ref.nodeo + deltas.get("dRAAN", 0.0)) % 360.0
@@ -400,7 +407,7 @@ def make_tle(ref_l1, ref_l2, ref, deltas, satnum=99999, intldes="26999A"):
     n_revday = (ref.no_kozai + deltas.get("dn", 0.0)) * 1440.0 / (2 * math.pi)
     revnum = int(ref_l2[63:68])
     l2 = (
-        f"2 {satnum:05d} {incl:8.4f} {raan:8.4f} {int(round(ecc * 1e7)):07d} "
+        f"2 {satnum} {incl:8.4f} {raan:8.4f} {int(round(ecc * 1e7)):07d} "
         f"{argp:8.4f} {mo:8.4f} {n_revday:11.8f}{revnum:5d}"
     )
     l2 = l2[:68] + str(tle_checksum(l2[:68]))
@@ -414,7 +421,7 @@ REF = None  # set in main; used by sigma_clip_fit
 
 
 def main():
-    global REF
+    global REF, F0
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--details-dir", required=True)
     ap.add_argument("--out", required=True, help="output directory")
@@ -431,7 +438,40 @@ def main():
     )
     ap.add_argument("--min-station-obs", type=int, default=2)
     ap.add_argument("--name", default="SURV-PROVES (EST)")
+    ap.add_argument(
+        "--f0", type=float, default=F0, help=f"nominal downlink Hz (default {F0:g})"
+    )
+    ap.add_argument(
+        "--since-days",
+        type=float,
+        default=None,
+        help="only use observations from the last N days (default: all)",
+    )
+    ap.add_argument(
+        "--min-obs",
+        type=int,
+        default=20,
+        help="skip (exit 0, no outputs) with fewer observations (default 20)",
+    )
+    ap.add_argument(
+        "--norad",
+        default=None,
+        help="catalog number for the output TLE (default: from --ref-tle "
+        "line 1; 99999 with the built-in ISS reference)",
+    )
+    ap.add_argument(
+        "--intl",
+        default=None,
+        help="international designator for the output TLE (default: from "
+        "--ref-tle line 1; 26999A with the built-in ISS reference)",
+    )
+    ap.add_argument(
+        "--output-stem",
+        default="surv_proves",
+        help="output TLE file name stem (default surv_proves -> surv_proves.tle)",
+    )
     args = ap.parse_args()
+    F0 = args.f0
 
     if args.ref_tle:
         lines = [line.strip() for line in open(args.ref_tle) if line.strip()]
@@ -440,6 +480,14 @@ def main():
     else:
         l1, l2 = REF_TLE_L1, REF_TLE_L2
     REF = ref = parse_ref(l1, l2)
+    # Output identity: explicit flags, else the reference TLE's own (the
+    # built-in ISS reference keeps the 99999/26999A placeholder so the fit
+    # can never be mistaken for the real ISS).
+    ref_norad, ref_intl = (
+        (l1[2:7].strip(), l1[9:17].strip()) if args.ref_tle else ("99999", "26999A")
+    )
+    norad = args.norad or ref_norad
+    intl = args.intl if args.intl is not None else ref_intl
 
     fit_params = [p.strip() for p in args.fit.split(",") if p.strip()]
     for p in fit_params:
@@ -447,6 +495,12 @@ def main():
             sys.exit(f"unknown fit parameter {p!r}; choose from {ORBIT_PARAMS}")
 
     obs, nfiles = load_observations(args.details_dir)
+    if args.since_days is not None:
+        cutoff = datetime.now(timezone.utc).timestamp() - args.since_days * 86400.0
+        obs = [o for o in obs if o["t"] >= cutoff]
+    if len(obs) < args.min_obs:
+        print(f"SKIP: only {len(obs)} observations")
+        return
     if not obs:
         sys.exit(f"no observations found in {args.details_dir}")
     n_pass_all = count_passes(obs)
@@ -524,7 +578,7 @@ def main():
     along_track_s = -dM_deg / 360.0 * period_min * 60.0  # + = sat arrives later
     dn_revday = pub_deltas.get("dn", 0.0) * 1440.0 / (2 * math.pi)
 
-    tle1, tle2 = make_tle(l1, l2, ref, pub_deltas)
+    tle1, tle2 = make_tle(l1, l2, ref, pub_deltas, satnum=norad, intldes=intl)
 
     # --- round-trip validation: parse output TLE, compare predicted doppler
     sat_out = Satrec.twoline2rv(tle1, tle2)
@@ -536,7 +590,8 @@ def main():
     # --- write outputs
     outdir = Path(args.out)
     outdir.mkdir(parents=True, exist_ok=True)
-    (outdir / "surv_proves.tle").write_text(f"{args.name}\n{tle1}\n{tle2}\n")
+    tle_name = f"{args.output_stem}.tle"
+    (outdir / tle_name).write_text(f"{args.name}\n{tle1}\n{tle2}\n")
 
     per_station = {}
     for s in stations:
@@ -682,7 +737,7 @@ def main():
             f"(n={per_station[s]['n_obs']})"
         )
     ap_("")
-    ap_("TLE (NORAD 99999 / 26999A placeholder):")
+    ap_(f"TLE (NORAD {norad} / {intl or '-'}):")
     ap_("  " + tle1)
     ap_("  " + tle2)
     ap_(f"round-trip TLE vs fitted state: max doppler diff {roundtrip_max_hz:.2f} Hz")
@@ -693,7 +748,7 @@ def main():
     ap_("")
     (outdir / "fit_report.txt").write_text("\n".join(lines_txt))
     print("\n".join(lines_txt))
-    print(f"Wrote {outdir}/surv_proves.tle, fit_report.txt, fit_report.json")
+    print(f"Wrote {outdir}/{tle_name}, fit_report.txt, fit_report.json")
 
 
 if __name__ == "__main__":

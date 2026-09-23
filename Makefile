@@ -19,6 +19,10 @@ OUT_DIR ?= out
 SAT ?= PROVES_Electra
 FIT ?= dM,dn
 
+# Unattended pipeline data root (external USB NVMe; see README "Continuous operation").
+DATA_ROOT ?= /Volumes/nvme-1tb-m4/proves/tinygs
+OPS_ENV = TINYGS_DATA_ROOT=$(DATA_ROOT)
+
 ##@ Setup
 
 .PHONY: setup
@@ -31,7 +35,18 @@ $(VENV)/.stamp: requirements.txt
 	@touch $@
 
 .PHONY: clean
-clean: ## Remove venv, pipeline data, and fit output
+clean: ## Remove venv, pipeline data, and fit output (refuses paths outside the repo)
+	@repo=$$(pwd -P); \
+	for d in "$(DATA_DIR)" "$(OUT_DIR)"; do \
+	  case "$$d" in /*) p="$$d" ;; *) p="$$repo/$$d" ;; esac; \
+	  parent=$$(cd "$$(dirname "$$p")" 2>/dev/null && pwd -P) || parent=""; \
+	  if [ -z "$$parent" ]; then real=""; elif [ -d "$$p" ]; then real=$$(cd "$$p" && pwd -P); else real="$$parent/$$(basename "$$p")"; fi; \
+	  case "$$real" in \
+	    "$$repo"/?*) ;; \
+	    "") [ ! -e "$$p" ] || { echo "clean: cannot resolve $$d" >&2; exit 1; } ;; \
+	    *) echo "clean: refusing to delete $$d -> $$real (outside $$repo)" >&2; exit 1 ;; \
+	  esac; \
+	done
 	rm -rf $(VENV) $(DATA_DIR) $(OUT_DIR)
 
 ##@ Development
@@ -39,6 +54,10 @@ clean: ## Remove venv, pipeline data, and fit output
 .PHONY: pre-commit-install
 pre-commit-install: ## Install pre-commit hooks
 	@$(UVX) pre-commit install > /dev/null
+
+.PHONY: test
+test: ## Run the unit tests
+	$(VENV)/bin/python -m unittest discover -s tests -v
 
 .PHONY: fmt
 fmt: pre-commit-install ## Lint and format files
@@ -63,3 +82,17 @@ tle: setup ## Fit a TLE from the collected detail JSON (override DETAILS_DIR to 
 
 .PHONY: all
 all: setup fetch details tle ## Full pipeline: setup -> fetch -> details -> tle
+
+##@ Continuous operation (see README; launchd runs these same scripts)
+
+.PHONY: cycle
+cycle: ## One unattended cycle: fetch + archive + track every enabled satellite into DATA_ROOT
+	$(OPS_ENV) scripts/cycle.sh
+
+.PHONY: details-all
+details-all: ## One rate-limited detail batch for all enabled satellites in DATA_ROOT
+	$(OPS_ENV) scripts/details.sh
+
+.PHONY: daily
+daily: ## CelesTrak TLE refresh + TLE fit (when enough new details) in DATA_ROOT
+	$(OPS_ENV) scripts/daily.sh

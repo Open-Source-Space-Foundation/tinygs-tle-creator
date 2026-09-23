@@ -2,6 +2,8 @@
 
 Written 2026-09-22 from a survey of the July 2026 work on Michael's laptop. Audience: the agent (or human) setting this up on the always-on **Mac Mini**. Paths below that point at `~/GitHut/proves-pass-data` refer to the *laptop*; that data has to be copied over (§4 step 2).
 
+> **Status (2026-09-22): implemented.** The deployed design differs from the plan below: LaunchDaemons `space.proves.tinygs.{cycle,details,daily}`, data on `/Volumes/nvme-1tb-m4/proves/tinygs/`, three satellites, and Electra is NORAD 69795. See the README section "Continuous operation" for the current setup; this document is kept as history.
+
 ## 1. Goal
 
 Poll TinyGS on a schedule for **PROVES Electra** (SCID 3) downlink packets, keep a permanent local archive (raw JSON plus decoded CSV plus per-station reception details), and raise alerts on interesting spacecraft events. Today this only runs when someone runs `make` by hand. It should run unattended.
@@ -31,7 +33,7 @@ Two commits, both dated 2026-07-08. Local `main` matches `origin/main`, and noth
 | `tinygs_packets_<UTC ts>.json` ×177 | Raw fetch snapshots from 2026-07-08T05:19Z to 2026-07-11T19:24Z, taken about every 30 min. Each holds the `/v4/packets` window, which is **only the latest 50 packets**, plus the `/v3/satellite` and `/stats` responses |
 | `tinygs_log.csv` | 380 decoded rows. 335 are packet rows (July 8–11). 45 are `lasttlm-<epoch>` rows written by a **variant of `proves_track.py` that was never committed**; it also ingested `/v3/satellite/<SAT>` `lastTlm` |
 | `details/*.json` ×338 | Per-packet, per-station reception detail |
-| `tle/` | Interim TLE fits, plus `norad69799.tle` (Electra is catalogued as **NORAD 69799, "ISS OBJECT YP"**, per an epoch-26191 TLE) |
+| `tle/` | Interim TLE fits, plus `norad69799.tle`. **Correction (2026-09-22):** 69799 is the wrong object. The team identified Electra as **NORAD 69795** by surveying candidate TLEs with directional ground stations, and TinyGS tracks 69795. As of epoch 26265, CelesTrak also names 69795 "PROVES-ELECTRA" (98067YK) |
 | `proves_electra.ksy`, `surv_proves.ksy`, `tinygs_ksy_README.md`, `ksc_out2/` | Kaitai decoder submitted to TinyGS |
 | `diagnosis.md` | July commanding-failure analysis. Not pipeline-related |
 | **`tgs_auth.json`** | **Playwright `storage_state` (TinyGS login cookies). Secret. Nothing in the committed code uses it.** Don't copy it to the new machine or commit it unless an authenticated fetch turns out to be needed |
@@ -143,7 +145,7 @@ Two commits, both dated 2026-07-08. Local `main` matches `origin/main`, and noth
 
 ## 5. Things to decide or know before calling it done
 
-- **TLE fitting is probably obsolete.** It exists because TinyGS propagated Electra with the ISS TLE (NORAD 99999). CelesTrak now catalogues it as **69799**, and the committed repo's `fit_tle.py` still defaults to the ISS reference. My recommendation: don't schedule `make tle`; keep details collection because it's cheap and scientifically useful (per-station rssi/snr/frequency error). Check whether the TinyGS packet `norad` field has changed from 99999.
+- **TLE fitting is probably obsolete.** It exists because TinyGS propagated Electra with the ISS TLE (NORAD 99999). Electra is **NORAD 69795** (see the correction in §2; 69799 was a misidentification), and the committed repo's `fit_tle.py` still defaults to the ISS reference. My recommendation: don't schedule `make tle`; keep details collection because it's cheap and scientifically useful (per-station rssi/snr/frequency error). Check whether the TinyGS packet `norad` field has changed from 99999.
 - **Misattribution and bit-slip.** On 2026-08-10, TinyGS filed Electra frames under **Alcyone**. They carried one spurious leading bit, and after de-slipping them (drop the first bit, re-pack, CRC16-CCITT over `frame[:246]`) they decoded as SCID 3, BootCount 21. The pipeline only polls `SAT=PROVES_Electra` and doesn't de-slip, so it would miss these. Options: add a second timer with `SAT=<Alcyone slug>`, and add de-slip fallback to `proves_parse.parse_frame` (try as-is, and on CRC failure retry shifted by one bit). Before storing anything, attribute frames by the **de-slipped** SCID. A slipped frame falsely reads "SCID 1".
 - **Is Electra still transmitting?** The last decoded frames are from 2026-08-10. Its 72 h command-loss reboot cadence was predicting continued beacons. The first week of the service will answer this. If it stays silent, the useful part is the dead-man alert, not the data.
 - **Datastore format.** CSV plus gzipped raw JSON is enough for now. If analysis grows, load `data/raw/*.json.gz` into SQLite or DuckDB instead of widening the CSV: the raw snapshots have every field, the CSV doesn't.

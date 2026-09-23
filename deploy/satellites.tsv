@@ -1,0 +1,12 @@
+# TinyGS satellites polled by scripts/cycle.sh, scripts/details.sh, scripts/daily.sh.
+# Columns (TAB-separated): key  slug  kind  norad  f0_hz
+#   key    per-satellite directory name under $TINYGS_DATA_ROOT
+#   slug   TinyGS satellite slug (app.tinygs.com/satellite/<slug>); rows whose
+#          slug starts with TODO are skipped with a warning
+#   kind   proves = decode with proves_track.py; raw = log with raw_track.py
+#   norad  CelesTrak catalog number, or - / TODO if unknown (no TLE fetch/fit)
+#   f0_hz  nominal downlink frequency for fit_tle.py, or - / TODO
+key	slug	kind	norad	f0_hz
+electra	PROVES_Electra	proves	69795	437400000
+alcyone	PROVES_Alcyone	proves	-	437400000
+hucsat-1	HUCSat	raw	69794	437400000

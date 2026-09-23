@@ -1,0 +1,760 @@
+{
+ "https://api.tinygs.com/v3/satellite/HUCSat": {
+  "name": "HUCSat",
+  "displayName": "HUCSat",
+  "status": "Supported",
+  "lastTelemetry": {
+   "radioheadHeader": {
+    "destination": 255,
+    "source": 255,
+    "identifier": 0,
+    "flags": 0
+   },
+   "packetManagerHeader": {
+    "packetIdentifier": 193,
+    "sequenceNumber": 0,
+    "totalPackets": 1,
+    "rssiAbs": 66,
+    "rssiDbm": -66
+   },
+   "payloadTelemetry": {
+    "nameKeyHash": [
+     0,
+     0,
+     0,
+     162
+    ],
+    "nameType": [
+     0
+    ],
+    "nameLen": 6,
+    "name": "HUCSat",
+    "fsmStateKeyHash": [
+     0,
+     0,
+     0,
+     149
+    ],
+    "fsmStateType": [
+     0
+    ],
+    "fsmStateLen": 6,
+    "fsmState": "orient",
+    "fsmAcc0KeyHash": [
+     0,
+     0,
+     0,
+     172
+    ],
+    "fsmAcc0Type": [
+     5
+    ],
+    "fsmAcc0": 0.11844462156295776,
+    "fsmAcc1KeyHash": [
+     0,
+     0,
+     0,
+     173
+    ],
+    "fsmAcc1Type": [
+     5
+    ],
+    "fsmAcc1": 0.07657027244567871,
+    "fsmAcc2KeyHash": [
+     0,
+     0,
+     0,
+     174
+    ],
+    "fsmAcc2Type": [
+     5
+    ],
+    "fsmAcc2": 0.03708872199058533,
+    "fsmDeplKeyHash": [
+     0,
+     0,
+     0,
+     63
+    ],
+    "fsmDeplType": [
+     0
+    ],
+    "fsmDeplLen": 4,
+    "fsmDepl": "True",
+    "fsmMagnV0KeyHash": [
+     0,
+     0,
+     0,
+     97
+    ],
+    "fsmMagnV0Type": [
+     5
+    ],
+    "fsmMagnV0": -6.749998092651367,
+    "fsmMagnV1KeyHash": [
+     0,
+     0,
+     0,
+     96
+    ],
+    "fsmMagnV1Type": [
+     5
+    ],
+    "fsmMagnV1": 165.74993896484375,
+    "fsmMagnV2KeyHash": [
+     0,
+     0,
+     0,
+     99
+    ],
+    "fsmMagnV2Type": [
+     5
+    ],
+    "fsmMagnV2": 25.49999237060547,
+    "fsmPaylLightKeyHash": [
+     0,
+     0,
+     0,
+     167
+    ],
+    "fsmPaylLightType": [
+     5
+    ],
+    "fsmPaylLight": 3,
+    "fsmPanLightKeyHash": [
+     0,
+     0,
+     0,
+     220
+    ],
+    "fsmPanLightType": [
+     0
+    ],
+    "fsmPanLightLen": 20,
+    "fsmPanLight": "[0.0, 0.0, 0.0, 0.0]",
+    "fsmPaySetKeyHash": [
+     0,
+     0,
+     0,
+     87
+    ],
+    "fsmPaySetType": [
+     5
+    ],
+    "fsmPaySet": 1,
+    "fsmAv0KeyHash": [
+     0,
+     0,
+     0,
+     154
+    ],
+    "fsmAv0Type": [
+     5
+    ],
+    "fsmAv0": 0.022907443344593048,
+    "fsmAv1KeyHash": [
+     0,
+     0,
+     0,
+     155
+    ],
+    "fsmAv1Type": [
+     5
+    ],
+    "fsmAv1": 0.010842856019735336,
+    "fsmAv2KeyHash": [
+     0,
+     0,
+     0,
+     152
+    ],
+    "fsmAv2Type": [
+     5
+    ],
+    "fsmAv2": -0.0061086490750312805,
+    "fsmBattVKeyHash": [
+     0,
+     0,
+     0,
+     232
+    ],
+    "fsmBattVType": [
+     5
+    ],
+    "fsmBattV": 8.131996154785156,
+    "fsmBestDirKeyHash": [
+     0,
+     0,
+     0,
+     162
+    ],
+    "fsmBestDirType": 0,
+    "fsmBestDirLen": 7,
+    "fsmBestDirStr": "-X Axis",
+    "timeKeyHash": [
+     0,
+     0,
+     0,
+     240
+    ],
+    "timeType": [
+     0
+    ],
+    "timeLen": 19,
+    "time": "2000-01-08 10:45:05",
+    "uptimeKeyHash": [
+     0,
+     0,
+     0,
+     213
+    ],
+    "uptimeType": [
+     5
+    ],
+    "uptime": 947326464
+   },
+   "payload": {
+    "tinygsTxPower": 1000,
+    "tinygsSatellite": "HUCSat",
+    "tinygsBatVoltage": 8131.996154785156
+   },
+   "type": "Beacon",
+   "telemetry": true,
+   "object": 0
+  },
+  "lastPacketTime": 1790142110645,
+  "tle": [
+   "2098-067YJ",
+   "1 69794U 98067YJ  26265.01101821  .00028263  00000-0  43256-3 0  9994",
+   "2 69794  51.6304 179.3772 0008447 179.0967 181.0040 15.54100597 12682"
+  ]
+ },
+ "https://api.tinygs.com/v4/packets?satellite=HUCSat": {
+  "packets": [
+   {
+    "raw": "//8AAD8AAAABR1dQMlhaSg==",
+    "serverTime": 1790027785497,
+    "mode": "LoRa",
+    "freq": 437.4,
+    "sf": 8,
+    "bw": 125,
+    "cr": 8,
+    "satellite": "HUCSat",
+    "norad": 99999,
+    "id": "01a0c5f8-a3a8-7724-9c85-31c77ce9e0d7",
+    "satDisplayName": "HUCSat",
+    "parsed": {
+     "radioheadHeader": {
+      "destination": 255,
+      "source": 255,
+      "identifier": 0,
+      "flags": 0
+     },
+     "packetManagerHeader": {
+      "packetIdentifier": 63,
+      "sequenceNumber": 0,
+      "totalPackets": 1,
+      "rssiAbs": 71,
+      "rssiDbm": -71
+     },
+     "payloadShort": {
+      "message": "WP2XZJ"
+     },
+     "payload": {
+      "tinygsTxPower": 1000,
+      "tinygsSatellite": "HUCSat",
+      "tinygsBatVoltage": -128
+     },
+     "type": "Other",
+     "telemetry": false,
+     "object": 0
+    },
+    "satPos": {
+     "lat": 1.5452435836258755,
+     "lng": 28.749762542772363,
+     "alt": 399.6402141604949
+    },
+    "sunLit": false,
+    "stationNumber": 1
+   },
+   {
+    "raw": "//8AAD4AAAABRwAAAKIABkhVQ1NhdAAAAJUABm9yaWVudAAAAKwFPePfiAAAAK0FPdoSeAAAAK4FPmPfiAAAAD8ABFRydWUAAABhBcFTMzAAAABgBUMbP/wAAABjBUE///wAAACnBQAAAAAAAADcABZbOTMuMCwgMS4wLCA0LjAsIDM4LjBdAAAAVwU/gAAAAAAAmgU9DL5MAAAAmwU8YTB4AAAAmAW8SqugAAAA6AVBAVgMAAAAogAHK1kgQXhpcwAAAPAAEzIwMDAtMDEtMDcgMDI6NTk6MzkAAADVBU5h1Tw=",
+    "serverTime": 1790027765408,
+    "mode": "LoRa",
+    "freq": 437.4,
+    "sf": 8,
+    "bw": 125,
+    "cr": 8,
+    "satellite": "HUCSat",
+    "norad": 99999,
+    "id": "01a0c5f8-16a4-70c4-8230-7bfb2dffbd4d",
+    "satDisplayName": "HUCSat",
+    "parsed": {
+     "radioheadHeader": {
+      "destination": 255,
+      "source": 255,
+      "identifier": 0,
+      "flags": 0
+     },
+     "packetManagerHeader": {
+      "packetIdentifier": 62,
+      "sequenceNumber": 0,
+      "totalPackets": 1,
+      "rssiAbs": 71,
+      "rssiDbm": -71
+     },
+     "payloadTelemetry": {
+      "nameKeyHash": [
+       0,
+       0,
+       0,
+       162
+      ],
+      "nameType": [
+       0
+      ],
+      "nameLen": 6,
+      "name": "HUCSat",
+      "fsmStateKeyHash": [
+       0,
+       0,
+       0,
+       149
+      ],
+      "fsmStateType": [
+       0
+      ],
+      "fsmStateLen": 6,
+      "fsmState": "orient",
+      "fsmAcc0KeyHash": [
+       0,
+       0,
+       0,
+       172
+      ],
+      "fsmAcc0Type": [
+       5
+      ],
+      "fsmAcc0": 0.11126619577407837,
+      "fsmAcc1KeyHash": [
+       0,
+       0,
+       0,
+       173
+      ],
+      "fsmAcc1Type": [
+       5
+      ],
+      "fsmAcc1": 0.10648053884506226,
+      "fsmAcc2KeyHash": [
+       0,
+       0,
+       0,
+       174
+      ],
+      "fsmAcc2Type": [
+       5
+      ],
+      "fsmAcc2": 0.22253239154815674,
+      "fsmDeplKeyHash": [
+       0,
+       0,
+       0,
+       63
+      ],
+      "fsmDeplType": [
+       0
+      ],
+      "fsmDeplLen": 4,
+      "fsmDepl": "True",
+      "fsmMagnV0KeyHash": [
+       0,
+       0,
+       0,
+       97
+      ],
+      "fsmMagnV0Type": [
+       5
+      ],
+      "fsmMagnV0": -13.199996948242188,
+      "fsmMagnV1KeyHash": [
+       0,
+       0,
+       0,
+       96
+      ],
+      "fsmMagnV1Type": [
+       5
+      ],
+      "fsmMagnV1": 155.24993896484375,
+      "fsmMagnV2KeyHash": [
+       0,
+       0,
+       0,
+       99
+      ],
+      "fsmMagnV2Type": [
+       5
+      ],
+      "fsmMagnV2": 11.999996185302734,
+      "fsmPaylLightKeyHash": [
+       0,
+       0,
+       0,
+       167
+      ],
+      "fsmPaylLightType": [
+       5
+      ],
+      "fsmPaylLight": 0,
+      "fsmPanLightKeyHash": [
+       0,
+       0,
+       0,
+       220
+      ],
+      "fsmPanLightType": [
+       0
+      ],
+      "fsmPanLightLen": 22,
+      "fsmPanLight": "[93.0, 1.0, 4.0, 38.0]",
+      "fsmPaySetKeyHash": [
+       0,
+       0,
+       0,
+       87
+      ],
+      "fsmPaySetType": [
+       5
+      ],
+      "fsmPaySet": 1,
+      "fsmAv0KeyHash": [
+       0,
+       0,
+       0,
+       154
+      ],
+      "fsmAv0Type": [
+       5
+      ],
+      "fsmAv0": 0.03436116874217987,
+      "fsmAv1KeyHash": [
+       0,
+       0,
+       0,
+       155
+      ],
+      "fsmAv1Type": [
+       5
+      ],
+      "fsmAv1": 0.013744466006755829,
+      "fsmAv2KeyHash": [
+       0,
+       0,
+       0,
+       152
+      ],
+      "fsmAv2Type": [
+       5
+      ],
+      "fsmAv2": -0.012370020151138306,
+      "fsmBattVKeyHash": [
+       0,
+       0,
+       0,
+       232
+      ],
+      "fsmBattVType": [
+       5
+      ],
+      "fsmBattV": 8.083995819091797,
+      "fsmBestDirKeyHash": [
+       0,
+       0,
+       0,
+       162
+      ],
+      "fsmBestDirType": 0,
+      "fsmBestDirLen": 7,
+      "fsmBestDirStr": "+Y Axis",
+      "timeKeyHash": [
+       0,
+       0,
+       0,
+       240
+      ],
+      "timeType": [
+       0
+      ],
+      "timeLen": 19,
+      "time": "2000-01-07 02:59:39",
+      "uptimeKeyHash": [
+       0,
+       0,
+       0,
+       213
+      ],
+      "uptimeType": [
+       5
+      ],
+      "uptime": 947212032
+     },
+     "payload": {
+      "tinygsTxPower": 1000,
+      "tinygsSatellite": "HUCSat",
+      "tinygsBatVoltage": 8083.995819091797
+     },
+     "type": "Beacon",
+     "telemetry": true,
+     "object": 0
+    },
+    "satPos": {
+     "lat": 2.5689566266694452,
+     "lng": 28.027105541095416,
+     "alt": 399.53384963438384
+    },
+    "sunLit": false,
+    "stationNumber": 1
+   },
+   {
+    "raw": "//8AAPkAAAABRwAAAKIABkhVQ1NhdAAAAJUABm9yaWVudAAAAKwFPgMWnAAAAK0FPauEdAAAAK4FPOFsQAAAAD8ABFRydWUAAABhBUFczMgAAABgBUMeP/wAAABjBUICzMgAAACnBUCgAAAAAADcABRbMC4wLCAwLjAsIDAuMCwgMC4wXQAAAFcFP4AAAAAAAJoFPLzoqAAAAJsFO9cuTAAAAJgFvAcdFAAAAOgFQQGZlAAAAKIABytZIEF4aXMAAADwABMyMDAwLTAxLTA3IDAyOjQzOjIyAAAA1QVOYdUs",
+    "serverTime": 1790026787750,
+    "mode": "LoRa",
+    "freq": 437.4,
+    "sf": 8,
+    "bw": 125,
+    "cr": 8,
+    "satellite": "HUCSat",
+    "norad": 99999,
+    "id": "01a0c5e9-2bae-74d4-a934-cf6cfef68825",
+    "satDisplayName": "HUCSat",
+    "parsed": {
+     "radioheadHeader": {
+      "destination": 255,
+      "source": 255,
+      "identifier": 0,
+      "flags": 0
+     },
+     "packetManagerHeader": {
+      "packetIdentifier": 249,
+      "sequenceNumber": 0,
+      "totalPackets": 1,
+      "rssiAbs": 71,
+      "rssiDbm": -71
+     },
+     "payloadTelemetry": {
+      "nameKeyHash": [
+       0,
+       0,
+       0,
+       162
+      ],
+      "nameType": [
+       0
+      ],
+      "nameLen": 6,
+      "name": "HUCSat",
+      "fsmStateKeyHash": [
+       0,
+       0,
+       0,
+       149
+      ],
+      "fsmStateType": [
+       0
+      ],
+      "fsmStateLen": 6,
+      "fsmState": "orient",
+      "fsmAcc0KeyHash": [
+       0,
+       0,
+       0,
+       172
+      ],
+      "fsmAcc0Type": [
+       5
+      ],
+      "fsmAcc0": 0.12801593542099,
+      "fsmAcc1KeyHash": [
+       0,
+       0,
+       0,
+       173
+      ],
+      "fsmAcc1Type": [
+       5
+      ],
+      "fsmAcc1": 0.0837487280368805,
+      "fsmAcc2KeyHash": [
+       0,
+       0,
+       0,
+       174
+      ],
+      "fsmAcc2Type": [
+       5
+      ],
+      "fsmAcc2": 0.02751743793487549,
+      "fsmDeplKeyHash": [
+       0,
+       0,
+       0,
+       63
+      ],
+      "fsmDeplType": [
+       0
+      ],
+      "fsmDeplLen": 4,
+      "fsmDepl": "True",
+      "fsmMagnV0KeyHash": [
+       0,
+       0,
+       0,
+       97
+      ],
+      "fsmMagnV0Type": [
+       5
+      ],
+      "fsmMagnV0": 13.799995422363281,
+      "fsmMagnV1KeyHash": [
+       0,
+       0,
+       0,
+       96
+      ],
+      "fsmMagnV1Type": [
+       5
+      ],
+      "fsmMagnV1": 158.24993896484375,
+      "fsmMagnV2KeyHash": [
+       0,
+       0,
+       0,
+       99
+      ],
+      "fsmMagnV2Type": [
+       5
+      ],
+      "fsmMagnV2": 32.699981689453125,
+      "fsmPaylLightKeyHash": [
+       0,
+       0,
+       0,
+       167
+      ],
+      "fsmPaylLightType": [
+       5
+      ],
+      "fsmPaylLight": 5,
+      "fsmPanLightKeyHash": [
+       0,
+       0,
+       0,
+       220
+      ],
+      "fsmPanLightType": [
+       0
+      ],
+      "fsmPanLightLen": 20,
+      "fsmPanLight": "[0.0, 0.0, 0.0, 0.0]",
+      "fsmPaySetKeyHash": [
+       0,
+       0,
+       0,
+       87
+      ],
+      "fsmPaySetType": [
+       5
+      ],
+      "fsmPaySet": 1,
+      "fsmAv0KeyHash": [
+       0,
+       0,
+       0,
+       154
+      ],
+      "fsmAv0Type": [
+       5
+      ],
+      "fsmAv0": 0.023060157895088196,
+      "fsmAv1KeyHash": [
+       0,
+       0,
+       0,
+       155
+      ],
+      "fsmAv1Type": [
+       5
+      ],
+      "fsmAv1": 0.006566798314452171,
+      "fsmAv2KeyHash": [
+       0,
+       0,
+       0,
+       152
+      ],
+      "fsmAv2Type": [
+       5
+      ],
+      "fsmAv2": -0.008246678858995438,
+      "fsmBattVKeyHash": [
+       0,
+       0,
+       0,
+       232
+      ],
+      "fsmBattVType": [
+       5
+      ],
+      "fsmBattV": 8.099994659423828,
+      "fsmBestDirKeyHash": [
+       0,
+       0,
+       0,
+       162
+      ],
+      "fsmBestDirType": 0,
+      "fsmBestDirLen": 7,
+      "fsmBestDirStr": "+Y Axis",
+      "timeKeyHash": [
+       0,
+       0,
+       0,
+       240
+      ],
+      "timeType": [
+       0
+      ],
+      "timeLen": 19,
+      "time": "2000-01-07 02:43:22",
+      "uptimeKeyHash": [
+       0,
+       0,
+       0,
+       213
+      ],
+      "uptimeType": [
+       5
+      ],
+      "uptime": 947211008
+     },
+     "payload": {
+      "tinygsTxPower": 1000,
+      "tinygsSatellite": "HUCSat",
+      "tinygsBatVoltage": 8099.994659423828
+     },
+     "type": "Beacon",
+     "telemetry": true,
+     "object": 0
+    },
+    "satPos": {
+     "lat": 46.259057760298035,
+     "lng": -21.16221525440869,
+     "alt": 407.2102982243978
+    },
+    "sunLit": false,
+    "stationNumber": 5
+   }
+  ]
+ }
+}

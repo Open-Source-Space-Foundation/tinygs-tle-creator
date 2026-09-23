@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  TEMPLATE - do not load directly. deploy/install.sh fills in the USER and REPO
+  placeholders and installs the result to /Library/LaunchDaemons (root:wheel 644).
+  CelesTrak TLE + Doppler TLE fit, daily 03:00 local.
+  A LaunchDaemon (system domain) with UserName, so it runs after a reboot
+  without anyone logging in.
+  Stdout/stderr go to the INTERNAL disk: launchd opens these paths before the
+  job starts, so they must never point at the USB NVMe (if it is unmounted the
+  job would fail to spawn, or write into a stale /Volumes directory). The job's
+  full output goes to <data root>/logs/ once the drive guard has passed.
+-->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>space.proves.tinygs.daily</string>
+	<key>UserName</key>
+	<string>__USER__</string>
+	<key>GroupName</key>
+	<string>staff</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>__REPO__/scripts/daily.sh</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>__REPO__</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>HOME</key>
+		<string>/Users/__USER__</string>
+		<key>PATH</key>
+		<string>/Users/__USER__/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+	<key>StartCalendarInterval</key>
+	<array>
+		<dict><key>Hour</key><integer>3</integer><key>Minute</key><integer>0</integer></dict>
+	</array>
+	<key>StandardOutPath</key>
+	<string>/Users/__USER__/Library/Logs/tinygs/daily.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/__USER__/Library/Logs/tinygs/daily.log</string>
+</dict>
+</plist>

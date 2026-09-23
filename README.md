@@ -162,6 +162,146 @@ out/
 `examples/` holds a checked-in reference fit (see below) so you can see
 what good output looks like without running the pipeline first.
 
+## Continuous operation
+
+On the always-on Mac mini the pipeline runs unattended from three launchd
+jobs. They're LaunchDaemons with `UserName`, so they run after a reboot
+without anyone logging in. Each job is a thin bash wrapper in `scripts/`,
+and you can also run each one by hand through `make`:
+
+| job (label `space.proves.tinygs.*`) | when | wrapper | make |
+|---|---|---|---|
+| `cycle` | :00 and :30 | `scripts/cycle.sh`: fetch, archive the raw snapshot, then track, for each satellite in turn (20 s apart) | `make cycle` |
+| `details` | :15 and :45 | `scripts/details.sh`: per-packet detail batch, at most 25 pages at 1/min | `make details-all` |
+| `daily` | 03:00 local | `scripts/daily.sh`: CelesTrak TLE, then a Doppler fit once ≥ 20 new detail files have arrived | `make daily` |
+
+`scripts/merge_import.sh` is a one-off. It merges the July 2026 laptop
+archive (rsynced to `<root>/import/laptop-2026-07/`) into `electra/` and
+leaves the import directory untouched.
+
+### Satellites
+
+`deploy/satellites.tsv` is tab-separated, with the columns `key slug kind norad f0_hz`:
+
+- `kind=proves` decodes with `proves_track.py`.
+  - Electra writes its own log.
+  - Any other PROVES satellite routes SCID 3 frames into `electra/log.csv` via `--route`, which catches Electra frames that TinyGS misfiles.
+- `kind=raw` logs with `raw_track.py`.
+- The wrappers skip a row, with a warning, if its slug starts with `TODO`.
+- `norad` and `f0_hz` can be `-`. Such a satellite gets no CelesTrak fetch or TLE fit.
+
+### Data root and the drive guard
+
+All data lives on the external USB NVMe:
+
+```
+/Volumes/nvme-1tb-m4/proves/
+  .tinygs-data-root                         sentinel (created by install.sh)
+  tinygs/                                   DATA_ROOT
+    <key>/latest.json                       last fetch (overwritten)
+    <key>/raw/YYYY/MM/DD/<key>_<ts>.json.gz permanent raw archive (source of truth)
+    <key>/log.csv  lasttlm.csv  details/    decoded log, lastTlm snapshots, per-packet detail
+    <key>/tle/celestrak/YYYYMMDD.tle latest.tle   <key>/tle/fit/<ts>/
+    alerts.log                              ALERT lines only
+    status/{cycle,details,daily}.json       last-run summaries (written atomically)
+    logs/{cycle,details,daily}-YYYY-MM.log  full job output
+```
+
+`scripts/lib.sh` holds the guard, and every wrapper sources it. Before a
+wrapper creates anything, the guard checks three things:
+
+1. `/Volumes/nvme-1tb-m4` is a real mount point.
+2. Its APFS Volume UUID is `53A32C48-941F-4BE3-BEA9-9640199F5D52`.
+3. The sentinel exists.
+
+If any check fails, the wrapper prints `DRIVE-MISSING: <reason>` plus a USB
+diagnostic line to stderr and exits **3**. This stops the archive from
+silently landing on the internal disk under a stale `/Volumes/...`
+directory. launchd's own stdout and stderr go to the **internal** disk
+(`~/Library/Logs/tinygs/<job>.log`). Look there first for `DRIVE-MISSING`
+lines and for a one-line summary of each run.
+
+These environment variables override the defaults: `TINYGS_DATA_ROOT`,
+`TINYGS_VOLUME`, `TINYGS_VOLUME_UUID`, `TINYGS_SENTINEL`,
+`TINYGS_SATS_TSV`, `TINYGS_PYTHON` and `TINYGS_PY_DIR`. For tests only,
+`TINYGS_SKIP_UUID_CHECK=1` skips the mount-point and UUID checks, but the
+volume directory and the sentinel must still exist.
+
+### Exit codes and status
+
+- **`cycle`** exits 0 when every enabled satellite fetched and tracked. It exits 1 when any of them failed.
+  - A failed satellite doesn't stop the others.
+  - A tracker exit of 2 means `FETCH-FAILED`: no packets response was captured, for example because of a Cloudflare challenge. `status/cycle.json` records this as `fetch_ok: false`.
+  - When the satellite is silent, the run still counts as success, with `new_frames=0`.
+- **`daily`** exits 1 if a CelesTrak fetch or a fit failed. A `SKIP:` from `fit_tle.py` (too few observations) is not a failure, and the wrapper removes the empty fit dir.
+
+### Alerts and dead-man switch
+
+`ALERT` lines go only to `<root>/alerts.log`. Alert sinks are deferred.
+`notify()` in `scripts/lib.sh` is the single hook point, and it does nothing
+unless `NOTIFY_URL` is set. When it is set, `notify()` POSTs the line as
+plain text, which is the format ntfy.sh expects. `hc_ping()` pings
+`HC_PING_URL`, for example healthchecks.io with a 2 h grace period, after
+each cycle in which every fetch succeeded. Put both URLs in `~/tinygs.env`,
+which the wrappers source and which is never committed:
+
+```sh
+NOTIFY_URL=https://ntfy.sh/<topic>
+HC_PING_URL=https://hc-ping.com/<uuid>
+```
+
+### Install / uninstall
+
+Prerequisites:
+
+- Run `make setup` as the pipeline user, so the venv and Playwright Chromium live in *that* user's home.
+- The NVMe is plugged in and mounted.
+
+```sh
+sudo deploy/install.sh      # idempotent; re-run after editing deploy/launchd/ or moving the repo
+sudo deploy/uninstall.sh    # boot out + remove the daemons; leaves data, logs, pmset alone
+```
+
+`install.sh` runs these steps in order:
+
+1. `pmset -a disksleep 0`, **first**. It then verifies the setting and aborts if it didn't take (see Troubleshooting).
+2. `pmset -a autorestart 1 sleep 0`.
+3. Sets `AutomountDisksWithoutUserLogin`.
+4. Creates `~/Library/Logs/tinygs`.
+5. If the right volume is mounted, creates the data root and sentinel.
+6. Renders `deploy/launchd/*.plist` (the `__USER__`/`__REPO__` placeholders) into `/Library/LaunchDaemons` (root:wheel 644).
+7. Boots out and bootstraps each job into `system`, then prints its state.
+
+`deploy/install.sh --render-only DIR` renders the plists without root, for review.
+
+To check on the jobs:
+
+```sh
+launchctl print system/space.proves.tinygs.cycle | grep -E 'state|last exit code|runs'
+sudo launchctl kickstart -k system/space.proves.tinygs.cycle      # run a cycle now
+cat /Volumes/nvme-1tb-m4/proves/tinygs/status/cycle.json
+tail -f ~/Library/Logs/tinygs/cycle.log /Volumes/nvme-1tb-m4/proves/tinygs/logs/cycle-$(date -u +%Y-%m).log
+pmset -g | grep -E ' (sleep|disksleep|autorestart) '
+```
+
+To seed the July archive: rsync the laptop's `proves-pass-data/tinygs/` to
+`<root>/import/laptop-2026-07/` (never copy `tgs_auth.json`), then run
+`scripts/merge_import.sh`. It is idempotent.
+
+### Troubleshooting
+
+- **`DRIVE-MISSING ... bridge present, media detached - replug required`.**
+  - The SABRENT enclosure's Realtek RTL9210 USB-NVMe bridge hangs and drops its disk when macOS sends SCSI START STOP UNIT on idle (disk sleep).
+  - The bridge stays enumerated on USB (vendor 0x0bda, product 0x9210) but exposes no media. Only a physical unplug and replug recovers it.
+  - Prevention is `disksleep 0`, which `install.sh` sets first and verifies. Check it with `pmset -g | awk '/ disksleep /{print $2}'`, which should print `0`.
+  - A macOS update or an Energy settings change can reset it. After replugging, re-run `sudo deploy/install.sh`.
+- **`... no Realtek 0x9210 USB-NVMe bridge on the USB bus`.** The enclosure is unplugged or unpowered.
+- **`... bridge present with media attached - volume not mounted?`.** Run `diskutil list external`, then `diskutil mountDisk <disk>`.
+- **`DRIVE-MISSING: ... Volume UUID ... != expected`.** A different disk is mounted at that path. Don't point the jobs at it. Fix the mount instead.
+- **Jobs run but get `Operation not permitted` on `/Volumes/...`.** macOS privacy controls (TCC, Removable Volumes) can block background processes. Grant `/bin/bash` Full Disk Access (System Settings → Privacy & Security), or allow removable-volume access, then kickstart the job.
+- **Every cycle is `FETCH-FAILED`.** Cloudflare is probably challenging headless Chromium. Look at the archived raw snapshot for that run, and run `.venv/bin/python tinygs_tle/tinygs_fetch.py --sat PROVES_Electra --out /tmp/t.json` by hand as the pipeline user.
+- **Jobs don't run after a reboot.** Check that the plists are in `/Library/LaunchDaemons` (not `~/Library/LaunchAgents`), and that `launchctl print system/<label>` shows them.
+
 ## Current known results
 
 See `examples/fit_report.txt` / `examples/fit_report.json` /

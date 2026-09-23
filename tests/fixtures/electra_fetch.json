@@ -1,0 +1,323 @@
+{
+ "https://api.tinygs.com/v3/satellite/PROVES_Electra": {
+  "name": "PROVES_Electra",
+  "displayName": "PROVES_Electra",
+  "status": "Supported",
+  "lastTelemetry": {
+   "loraHeader": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "primaryHeader": {
+    "globalVcid": 50,
+    "masterFrameCount": 158,
+    "virtualFrameCount": 158,
+    "dataFieldStatus": 6144,
+    "spacecraftId": 3,
+    "virtualChannelId": 1,
+    "ocfFlag": 0,
+    "versionNumber": 0
+   },
+   "spacePacket": {
+    "packetId": 4,
+    "packetSeqCtrl": 49807,
+    "packetDataLength": 95,
+    "payload": {
+     "fwPacketDescriptor": 4,
+     "tlmPacketId": 1,
+     "fwTime": {
+      "timeBase": 2,
+      "timeContext": 0,
+      "seconds": 1790141571,
+      "microseconds": 968000,
+      "unixSecondsFloat": 1790141571.968
+     },
+     "beacon": {
+      "bootCount": 37,
+      "currentMode": 2,
+      "angularVelocityX": 0.015271,
+      "angularVelocityY": 0.023212,
+      "angularVelocityZ": 0.023365,
+      "voltage": 8.311999,
+      "sysPower": 0.3416,
+      "solPower": 0,
+      "totalPowerConsumed": 7716.18896484375,
+      "totalPowerGenerated": 8.668374061584473,
+      "reserved": 0,
+      "seqNumLora": 0,
+      "seqNumUart": 0,
+      "loraBytesReceived": 0
+     }
+    },
+    "apid": 4,
+    "secondaryHeaderFlag": 0,
+    "sequenceCount": 655,
+    "isBeacon": true,
+    "sequenceFlags": 3,
+    "packetType": 0
+   },
+   "frameCrc16": 22824,
+   "payload": {
+    "tinygsTxPower": 1000,
+    "tinygsSatellite": "PROVES_Electra",
+    "tinygsSolarPower": 0,
+    "tinygsBatVoltage": 8.311999
+   },
+   "telemetry": true,
+   "type": "Beacon",
+   "object": 0
+  },
+  "lastPacketTime": 1790141582712,
+  "tle": [
+   "2098-067YK",
+   "1 69795U 98067YK  26238.19925469  .00051025  00000-0  74528-3 0  9994",
+   "2 69795  51.6318 312.3385 0007117  63.8737 296.2985 15.55107106  8524"
+  ]
+ },
+ "https://api.tinygs.com/v4/packets?satellite=PROVES_Electra": {
+  "packets": [
+   {
+    "raw": "AAAAAAAySkoYAAAE1DwAXwAEAAEAAgBqsajLAAaLyAAAAAAAAAAkAj9lRDTjNpudP5UcXFcY64k/ptTkyULUkUAkul41P3zuAAAAAAAAAAA/6igkC3gDR0dai1NCSwS4AAAAAAAAAAAAAAAAAAABfgf/wAAAg0RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERIs+",
+    "serverTime": 1790027988407,
+    "mode": "LoRa",
+    "freq": 437.4,
+    "sf": 8,
+    "bw": 125,
+    "cr": 8,
+    "satellite": "PROVES_Electra",
+    "norad": 99999,
+    "id": "01a0c5fb-8c4f-7428-9dd6-d8a9c912dcc9",
+    "satDisplayName": "PROVES_Electra",
+    "parsed": {
+     "loraHeader": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "primaryHeader": {
+      "globalVcid": 50,
+      "masterFrameCount": 74,
+      "virtualFrameCount": 74,
+      "dataFieldStatus": 6144,
+      "spacecraftId": 3,
+      "virtualChannelId": 1,
+      "ocfFlag": 0,
+      "versionNumber": 0
+     },
+     "spacePacket": {
+      "packetId": 4,
+      "packetSeqCtrl": 54332,
+      "packetDataLength": 95,
+      "payload": {
+       "fwPacketDescriptor": 4,
+       "tlmPacketId": 1,
+       "fwTime": {
+        "timeBase": 2,
+        "timeContext": 0,
+        "seconds": 1790027979,
+        "microseconds": 429000,
+        "unixSecondsFloat": 1790027979.429
+       },
+       "beacon": {
+        "bootCount": 36,
+        "currentMode": 2,
+        "angularVelocityX": 0.002596,
+        "angularVelocityY": 0.020616,
+        "angularVelocityZ": 0.044593,
+        "voltage": 10.364,
+        "sysPower": 0,
+        "solPower": 0.8174,
+        "totalPowerConsumed": 55947.32421875,
+        "totalPowerGenerated": 50.754608154296875,
+        "reserved": 0,
+        "seqNumLora": 0,
+        "seqNumUart": 0,
+        "loraBytesReceived": 382
+       }
+      },
+      "apid": 4,
+      "secondaryHeaderFlag": 0,
+      "sequenceCount": 5180,
+      "isBeacon": true,
+      "sequenceFlags": 3,
+      "packetType": 0
+     },
+     "frameCrc16": 35646,
+     "payload": {
+      "tinygsTxPower": 1000,
+      "tinygsSatellite": "PROVES_Electra",
+      "tinygsSolarPower": 0.8174,
+      "tinygsBatVoltage": 10.364
+     },
+     "telemetry": true,
+     "type": "Beacon",
+     "object": 0
+    },
+    "stationNumber": 4
+   },
+   {
+    "raw": "AAAAAAAySUkYAAAE1DsAXwAEAAEAAgBqsaitAAaLyAAAAAAAAAAkAj9kA1ejVQQ+P5Y0l7dBSk0/pjS5RTCLuUAkpeMyad+YAAAAAAAAAAA/6igkC3gDR0dadERCSvJsAAAAAAAAAAAAAAAAAAABfgf/wAAAg0REREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREd1",
+    "serverTime": 1790027958375,
+    "mode": "LoRa",
+    "freq": 437.4,
+    "sf": 8,
+    "bw": 125,
+    "cr": 8,
+    "satellite": "PROVES_Electra",
+    "norad": 99999,
+    "id": "01a0c5fb-086d-74dc-a566-8ea41963d82b",
+    "satDisplayName": "PROVES_Electra",
+    "parsed": {
+     "loraHeader": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "primaryHeader": {
+      "globalVcid": 50,
+      "masterFrameCount": 73,
+      "virtualFrameCount": 73,
+      "dataFieldStatus": 6144,
+      "spacecraftId": 3,
+      "virtualChannelId": 1,
+      "ocfFlag": 0,
+      "versionNumber": 0
+     },
+     "spacePacket": {
+      "packetId": 4,
+      "packetSeqCtrl": 54331,
+      "packetDataLength": 95,
+      "payload": {
+       "fwPacketDescriptor": 4,
+       "tlmPacketId": 1,
+       "fwTime": {
+        "timeBase": 2,
+        "timeContext": 0,
+        "seconds": 1790027949,
+        "microseconds": 429000,
+        "unixSecondsFloat": 1790027949.429
+       },
+       "beacon": {
+        "bootCount": 36,
+        "currentMode": 2,
+        "angularVelocityX": 0.002443,
+        "angularVelocityY": 0.021685,
+        "angularVelocityZ": 0.043371,
+        "voltage": 10.323999,
+        "sysPower": 0,
+        "solPower": 0.8174,
+        "totalPowerConsumed": 55924.265625,
+        "totalPowerGenerated": 50.73674011230469,
+        "reserved": 0,
+        "seqNumLora": 0,
+        "seqNumUart": 0,
+        "loraBytesReceived": 382
+       }
+      },
+      "apid": 4,
+      "secondaryHeaderFlag": 0,
+      "sequenceCount": 5179,
+      "isBeacon": true,
+      "sequenceFlags": 3,
+      "packetType": 0
+     },
+     "frameCrc16": 18293,
+     "payload": {
+      "tinygsTxPower": 1000,
+      "tinygsSatellite": "PROVES_Electra",
+      "tinygsSolarPower": 0.8174,
+      "tinygsBatVoltage": 10.323999
+     },
+     "telemetry": true,
+     "type": "Beacon",
+     "object": 0
+    },
+    "stationNumber": 14
+   },
+   {
+    "raw": "AAAAAAAySEgYAAAE1DoAXwAEAAEAAgBqsaiPAAY9qAAAAAAAAAAkAr9qRZEDyOJdP5UcXFcY64k/paiblRxcV0AkYEGJN0vHAAAAAAAAAAA/6igkC3gDR0daav9CSumVAAAAAAAAAAAAAAAAAAABfgf/wAAAg0RERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERIbb",
+    "serverTime": 1790027928415,
+    "mode": "LoRa",
+    "freq": 437.4,
+    "sf": 8,
+    "bw": 125,
+    "cr": 8,
+    "satellite": "PROVES_Electra",
+    "norad": 99999,
+    "id": "01a0c5fa-caad-75f1-9527-8a6071570a3a",
+    "satDisplayName": "PROVES_Electra",
+    "parsed": {
+     "loraHeader": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "primaryHeader": {
+      "globalVcid": 50,
+      "masterFrameCount": 72,
+      "virtualFrameCount": 72,
+      "dataFieldStatus": 6144,
+      "spacecraftId": 3,
+      "virtualChannelId": 1,
+      "ocfFlag": 0,
+      "versionNumber": 0
+     },
+     "spacePacket": {
+      "packetId": 4,
+      "packetSeqCtrl": 54330,
+      "packetDataLength": 95,
+      "payload": {
+       "fwPacketDescriptor": 4,
+       "tlmPacketId": 1,
+       "fwTime": {
+        "timeBase": 2,
+        "timeContext": 0,
+        "seconds": 1790027919,
+        "microseconds": 409000,
+        "unixSecondsFloat": 1790027919.409
+       },
+       "beacon": {
+        "bootCount": 36,
+        "currentMode": 2,
+        "angularVelocityX": -0.003207,
+        "angularVelocityY": 0.020616,
+        "angularVelocityZ": 0.042302,
+        "voltage": 10.188,
+        "sysPower": 0,
+        "solPower": 0.8174,
+        "totalPowerConsumed": 55914.99609375,
+        "totalPowerGenerated": 50.72810745239258,
+        "reserved": 0,
+        "seqNumLora": 0,
+        "seqNumUart": 0,
+        "loraBytesReceived": 382
+       }
+      },
+      "apid": 4,
+      "secondaryHeaderFlag": 0,
+      "sequenceCount": 5178,
+      "isBeacon": true,
+      "sequenceFlags": 3,
+      "packetType": 0
+     },
+     "frameCrc16": 34523,
+     "payload": {
+      "tinygsTxPower": 1000,
+      "tinygsSatellite": "PROVES_Electra",
+      "tinygsSolarPower": 0.8174,
+      "tinygsBatVoltage": 10.188
+     },
+     "telemetry": true,
+     "type": "Beacon",
+     "object": 0
+    },
+    "stationNumber": 4
+   }
+  ]
+ }
+}
