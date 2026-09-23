@@ -5,6 +5,7 @@
 # up to ~25 min; tinygs_details_batch.py's own lockfile prevents overlap.
 #
 # Exit: tinygs_details_batch.py's exit code (0 when nothing to do), 3 drive missing.
+{ # whole script parsed before it runs, so updating it mid-run (git pull) is safe
 set -euo pipefail
 JOB=details
 # shellcheck source=scripts/lib.sh
@@ -67,3 +68,4 @@ EOF
 log "=== details end rc=$rc new_details=$((after - before))"
 summary "rc=$rc new_details=$((after - before))"
 exit "$rc"
+}

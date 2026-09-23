@@ -7,6 +7,7 @@
 #      satellite has an f0_hz and a reference TLE exists.
 #
 # Exit: 0 all ok, 1 some step failed, 3 drive missing.
+{ # whole script parsed before it runs, so updating it mid-run (git pull) is safe
 set -euo pipefail
 JOB=daily
 # shellcheck source=scripts/lib.sh
@@ -114,3 +115,5 @@ EOF
 log "=== daily end failed=$n_fail"
 summary "failed=$n_fail"
 [[ $n_fail -eq 0 ]]
+exit
+}

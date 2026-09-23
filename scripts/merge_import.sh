@@ -18,6 +18,7 @@
 #     the merge log only (not alerts.log / notify).
 #
 # Takes the cycle lock, so it never races a scheduled cycle on electra/log.csv.
+{ # whole script parsed before it runs, so updating it mid-run (git pull) is safe
 set -euo pipefail
 JOB=merge_import
 # shellcheck source=scripts/lib.sh
@@ -105,3 +106,5 @@ rows_after=0
 log "log.csv: $rows_before -> $rows_after lines; $n_track_fail snapshot(s) failed; $n_hist_alerts historical ALERT line(s) (not forwarded)"
 log "=== merge_import done"
 summary "raw_new=$n_new details_new=$((n_det_after - n_det_before)) log_lines=$rows_before->$rows_after track_failed=$n_track_fail"
+exit
+}

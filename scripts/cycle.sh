@@ -17,6 +17,7 @@
 #
 # Exit: 0 all ok, 1 some satellite failed (fetch, track, or stale feed),
 #       3 drive missing.
+{ # whole script parsed before it runs, so updating it mid-run (git pull) is safe
 set -euo pipefail
 JOB=cycle
 # shellcheck source=scripts/lib.sh
@@ -176,3 +177,5 @@ if [[ $n_fetch_fail -eq 0 && $n_stale -eq 0 && $n_ok -gt 0 ]]; then hc_ping; fi
 log "=== cycle end ok=$n_ok failed=$n_fail (fetch_failed=$n_fetch_fail stale=$n_stale)"
 summary "ok=$n_ok failed=$n_fail fetch_failed=$n_fetch_fail stale=$n_stale"
 [[ $n_fail -eq 0 ]]
+exit
+}
