@@ -31,6 +31,7 @@ if [[ -n "${HOME:-}" && "$HOME" != "/Users/ossf-1" ]]; then
 fi
 export TZ=UTC
 export LC_ALL=C
+export PYTHONUNBUFFERED=1 # job logs show progress live, not only at exit
 
 # Secrets (NOTIFY_URL, HC_PING_URL) live outside the repo and are never committed.
 TINYGS_ENV_FILE="${TINYGS_ENV_FILE:-${HOME:-/nonexistent}/tinygs.env}"
