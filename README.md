@@ -255,6 +255,7 @@ HC_PING_URL=https://hc-ping.com/<uuid>
 Prerequisites:
 
 - Run `make setup` as the pipeline user, so the venv and Playwright Chromium live in *that* user's home.
+- Run `make launcher` as the pipeline user. It builds `deploy/bin/tinygs-launch`, the small ad-hoc-signed program the daemons run; it runs only `scripts/{cycle,details,daily}.sh`. Grant it Full Disk Access: System Settings → Privacy & Security → Full Disk Access → **+**, press ⌘⇧G, and paste the binary's full path. Without this, TCC blocks writes to the external drive.
 - The NVMe is plugged in and mounted.
 
 ```sh
@@ -298,7 +299,7 @@ To seed the July archive: rsync the laptop's `proves-pass-data/tinygs/` to
 - **`... no Realtek 0x9210 USB-NVMe bridge on the USB bus`.** The enclosure is unplugged or unpowered.
 - **`... bridge present with media attached - volume not mounted?`.** Run `diskutil list external`, then `diskutil mountDisk <disk>`.
 - **`DRIVE-MISSING: ... Volume UUID ... != expected`.** A different disk is mounted at that path. Don't point the jobs at it. Fix the mount instead.
-- **Jobs run but get `Operation not permitted` on `/Volumes/...`.** macOS privacy controls (TCC, Removable Volumes) can block background processes. Grant `/bin/bash` Full Disk Access (System Settings → Privacy & Security), or allow removable-volume access, then kickstart the job.
+- **Jobs run but get `Operation not permitted` on `/Volumes/...`.** macOS privacy controls (TCC) block LaunchDaemons from writing to external volumes. Access is attributed to `deploy/bin/tinygs-launch`, so grant Full Disk Access to that binary only, not to `/bin/bash`, then kickstart the job. Rebuilding the launcher (`make launcher`) changes its code hash, so the grant has to be redone afterwards.
 - **Every cycle is `FETCH-FAILED`.** Cloudflare is probably challenging headless Chromium. Look at the archived raw snapshot for that run, and run `.venv/bin/python tinygs_tle/tinygs_fetch.py --sat PROVES_Electra --out /tmp/t.json` by hand as the pipeline user.
 - **Jobs don't run after a reboot.** Check that the plists are in `/Library/LaunchDaemons` (not `~/Library/LaunchAgents`), and that `launchctl print system/<label>` shows them.
 

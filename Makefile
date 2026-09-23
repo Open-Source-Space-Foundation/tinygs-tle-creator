@@ -85,6 +85,16 @@ all: setup fetch details tle ## Full pipeline: setup -> fetch -> details -> tle
 
 ##@ Continuous operation (see README; launchd runs these same scripts)
 
+LAUNCHER := deploy/bin/tinygs-launch
+
+.PHONY: launcher
+launcher: $(LAUNCHER) ## Build the launchd launcher (grant it Full Disk Access after each rebuild)
+
+$(LAUNCHER): deploy/launcher/tinygs-launch.c
+	@mkdir -p $(@D)
+	cc -O2 -Wall -Wextra -o $@ $<
+	codesign --force --sign - --identifier space.proves.tinygs.launch $@
+
 .PHONY: cycle
 cycle: ## One unattended cycle: fetch + archive + track every enabled satellite into DATA_ROOT
 	$(OPS_ENV) scripts/cycle.sh

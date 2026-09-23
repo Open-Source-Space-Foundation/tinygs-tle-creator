@@ -106,7 +106,10 @@ if [[ $vol_ok -eq 1 ]]; then
   chmod 644 "$SENTINEL"
 fi
 
-# 5. Render + install plists.
+# 5. Render + install plists. The jobs run deploy/bin/tinygs-launch, which is
+#    what needs Full Disk Access (TCC blocks daemons from external volumes).
+[[ -x "$REPO/deploy/bin/tinygs-launch" ]] \
+  || die "missing $REPO/deploy/bin/tinygs-launch - run 'make launcher' as $USER_NAME first"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 render "$USER_NAME" "$tmp"
