@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from logio import (  # noqa: E402
     append_rows,
     compact_json,
+    feed_health,
     iso_from_ms,
     load_packets_or_exit,
     read_log,
@@ -65,7 +66,7 @@ def packet_row(p: dict, source_sat: str) -> dict:
 
 
 def track(fetch_json: str, log_csv: str, source_sat: str = "") -> int:
-    _, packets = load_packets_or_exit(fetch_json)
+    capture, packets = load_packets_or_exit(fetch_json)
     _, rows = read_log(log_csv)
     known = {r.get("id") for r in rows}
     new_rows = []
@@ -78,6 +79,7 @@ def track(fetch_json: str, log_csv: str, source_sat: str = "") -> int:
     append_rows(log_csv, FIELDS, new_rows)
 
     print(f"new_frames={len(new_rows)}")
+    print(feed_health(capture, packets))
     if new_rows:
         print(
             f"span {new_rows[0]['serverTime'][:19]} .. {new_rows[-1]['serverTime'][:19]}"

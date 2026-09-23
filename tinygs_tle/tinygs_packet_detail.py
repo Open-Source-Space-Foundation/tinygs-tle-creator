@@ -6,7 +6,7 @@ real headless browser hitting the packet detail page, which triggers the
 SPA to call `/v3/packet/<id>`.
 
 Usage:
-    tinygs_packet_detail.py PACKET_ID [--out packet_<id>.json]
+    tinygs_packet_detail.py PACKET_ID [--out packet_<id>.json] [--auth-state FILE]
 """
 
 import argparse
@@ -16,13 +16,14 @@ import json
 from playwright.async_api import async_playwright
 
 
-async def fetch(packet_id: str, out: str) -> None:
+async def fetch(packet_id: str, out: str, auth_state: str | None = None) -> None:
     captured = {}
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         ctx = await browser.new_context(
+            storage_state=auth_state,
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
         )
         page = await ctx.new_page()
         got = asyncio.Event()
@@ -59,9 +60,14 @@ def main() -> None:
     ap.add_argument(
         "--out", default=None, help="output JSON path (default: packet_<id>.json)"
     )
+    ap.add_argument(
+        "--auth-state",
+        default=None,
+        help="Playwright storage_state JSON with the TinyGS login (optional)",
+    )
     args = ap.parse_args()
     out = args.out or f"packet_{args.packet_id}.json"
-    asyncio.run(fetch(args.packet_id, out))
+    asyncio.run(fetch(args.packet_id, out, args.auth_state))
 
 
 if __name__ == "__main__":

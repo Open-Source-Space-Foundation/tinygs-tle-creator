@@ -49,7 +49,8 @@ if [[ ${#src_args[@]} -eq 0 ]]; then
 else
   py tinygs_details_batch.py "${src_args[@]}" \
     --max-per-run "$MAX_PER_RUN" --spacing-s "$SPACING_S" \
-    --lockfile "$ROOT/.details_batch.lock" || rc=$?
+    --lockfile "$ROOT/.details_batch.lock" \
+    ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} || rc=$?
   after=0
   for key in $used_keys; do
     n="$(find "$ROOT/$key/details" -type f -name '*.json' | wc -l | tr -d ' ')"

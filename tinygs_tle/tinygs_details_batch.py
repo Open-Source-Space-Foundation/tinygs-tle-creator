@@ -25,6 +25,7 @@ Usage:
                              [--source LOG_CSV:DETAILS_DIR ...]
                              [--max-per-run 25] [--spacing-s 60]
                              [--lockfile data/.details_batch.lock]
+                             [--auth-state FILE]
 """
 
 import argparse
@@ -90,7 +91,13 @@ def plan(sources: list, max_per_run: int) -> list:
     return todo
 
 
-def run(sources: list, lockfile: str, max_per_run: int, spacing_s: int) -> int:
+def run(
+    sources: list,
+    lockfile: str,
+    max_per_run: int,
+    spacing_s: int,
+    auth_state: str | None = None,
+) -> int:
     """Returns a process exit code."""
     if not any(os.path.exists(log) for log, _ in sources):
         print("no logs found, nothing to do")
@@ -117,7 +124,8 @@ def run(sources: list, lockfile: str, max_per_run: int, spacing_s: int) -> int:
             attempts += 1
             try:
                 r = subprocess.run(
-                    [sys.executable, detail_script, pid, "--out", out],
+                    [sys.executable, detail_script, pid, "--out", out]
+                    + (["--auth-state", auth_state] if auth_state else []),
                     capture_output=True,
                     text=True,
                     timeout=120,
@@ -190,6 +198,11 @@ def main() -> None:
     ap.add_argument(
         "--spacing-s", type=int, default=60, help="seconds between detail page loads"
     )
+    ap.add_argument(
+        "--auth-state",
+        default=None,
+        help="Playwright storage_state JSON with the TinyGS login (optional)",
+    )
     args = ap.parse_args()
     if args.source:
         if args.log or args.details_dir:
@@ -197,7 +210,9 @@ def main() -> None:
         sources = args.source
     else:
         sources = [(args.log or DEFAULT_LOG, args.details_dir or DEFAULT_DETAILS_DIR)]
-    sys.exit(run(sources, args.lockfile, args.max_per_run, args.spacing_s))
+    sys.exit(
+        run(sources, args.lockfile, args.max_per_run, args.spacing_s, args.auth_state)
+    )
 
 
 if __name__ == "__main__":

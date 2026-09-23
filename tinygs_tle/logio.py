@@ -5,6 +5,7 @@ satellite). Not a CLI.
 
     load_fetch(path)            -> whole tinygs_fetch.py capture (dict)
     packets_from_fetch(d)       -> list of packets, or raises FetchFailed
+    feed_health(d, packets)     -> "feed_lag_h=... auth=..." status line
     read_log(path)              -> (header, rows)
     append_rows(path, fields, rows)
                                 -> append, creating the file or migrating an
@@ -57,6 +58,38 @@ def load_packets_or_exit(fetch_json: str) -> tuple[dict, list]:
     except FetchFailed as e:
         print(str(e), file=sys.stderr)
         sys.exit(FETCH_FAILED_EXIT)
+
+
+def feed_health(d: dict, packets: list) -> str:
+    """One status line for the wrappers: how stale the packet list is, and auth.
+
+    feed_lag_h = hours between the satellite's lastPacketTime (from
+    /v3/satellite/<slug>) and the newest packet in the list. A silent satellite
+    gives ~0; a large value means TinyGS is serving a frozen list while the
+    satellite is still being heard. `na` if either time is unavailable.
+    auth = whether the packets request carried a session token (`na` for
+    captures made before tinygs_fetch.py recorded it).
+    """
+    sat = next(
+        (
+            v
+            for k, v in d.items()
+            if "/satellite/" in k
+            and "stats" not in k
+            and "packets" not in k
+            and isinstance(v, dict)
+        ),
+        {},
+    )
+    last = sat.get("lastPacketTime")
+    times = [p.get("serverTime") for p in packets if p.get("serverTime")]
+    lag = (
+        f"{max(0.0, (last - max(times)) / 3.6e6):.2f}"
+        if isinstance(last, (int, float)) and times
+        else "na"
+    )
+    auth = (d.get("_meta") or {}).get("packets_request_authenticated")
+    return f"feed_lag_h={lag} auth={'na' if auth is None else str(auth).lower()}"
 
 
 def iso_from_ms(ms) -> str:

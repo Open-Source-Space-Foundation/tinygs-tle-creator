@@ -10,7 +10,13 @@
 #   <root>/logs/cycle-YYYY-MM.log                   run output
 #   <root>/alerts.log                               ALERT lines only
 #
-# Exit: 0 all ok, 1 some satellite failed (fetch or track), 3 drive missing.
+# STALE-FEED: TinyGS sometimes serves a frozen packet list (newest packet many
+# hours older than the satellite's lastPacketTime) while the satellite is still
+# being heard. That looks exactly like a quiet satellite (new_frames=0), so the
+# trackers print `feed_lag_h=` and a lag over TINYGS_STALE_H counts as failure.
+#
+# Exit: 0 all ok, 1 some satellite failed (fetch, track, or stale feed),
+#       3 drive missing.
 set -euo pipefail
 JOB=cycle
 # shellcheck source=scripts/lib.sh
@@ -29,6 +35,7 @@ sats_json=""
 n_ok=0
 n_fail=0
 n_fetch_fail=0
+n_stale=0
 first=1
 
 add_sat_json() { # key json-object
@@ -58,7 +65,7 @@ while IFS=$'\t' read -r key slug kind _norad _f0; do
   #    mistaken for a fresh one and re-archived)
   rm -f "$latest"
   fetch_rc=0
-  py tinygs_fetch.py --sat "$slug" --out "$latest" || fetch_rc=$?
+  py tinygs_fetch.py --sat "$slug" --out "$latest" ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} || fetch_rc=$?
   if [[ $fetch_rc -ne 0 || ! -s "$latest" ]]; then
     log "FETCH-FAILED $key: tinygs_fetch.py rc=$fetch_rc, output ${latest}$([[ -s "$latest" ]] || echo ' missing/empty')"
     n_fail=$((n_fail + 1))
@@ -120,13 +127,29 @@ while IFS=$'\t' read -r key slug kind _norad _f0; do
 
   new_frames="$(printf '%s\n' "$out" | sed -n 's/.*new_frames=\([0-9][0-9]*\).*/\1/p' | tail -1)"
   [[ -n "$new_frames" ]] || new_frames=null
+  feed_lag_h="$(printf '%s\n' "$out" | sed -n 's/.*feed_lag_h=\([0-9.]*\).*/\1/p' | tail -1)"
+  auth="$(printf '%s\n' "$out" | sed -n 's/.*feed_lag_h=[^ ]* auth=\([a-z]*\).*/\1/p' | tail -1)"
+  stale=false
+  if [[ -n "$feed_lag_h" ]] && awk -v l="$feed_lag_h" -v t="$TINYGS_STALE_H" 'BEGIN{exit !(l > t)}'; then
+    stale=true
+  fi
+  if [[ ${#AUTH_ARGS[@]} -gt 0 && "$auth" == false ]]; then
+    alert_line "$key: AUTH-NOT-SENT: $TINYGS_AUTH_STATE is set but the packets request carried no session token"
+  fi
+  [[ -n "$feed_lag_h" ]] || feed_lag_h=null
+  [[ -n "$auth" && "$auth" != na ]] || auth=null
 
   fetch_ok=true
   ok=false
-  if [[ $track_rc -eq 0 ]]; then
+  if [[ $track_rc -eq 0 && $stale == true ]]; then
+    n_fail=$((n_fail + 1))
+    n_stale=$((n_stale + 1))
+    log "STALE-FEED $key: newest listed packet is ${feed_lag_h} h behind lastPacketTime (auth=$auth)"
+    alert_line "$key: STALE-FEED: TinyGS packet list ${feed_lag_h} h behind lastPacketTime (auth=$auth)"
+  elif [[ $track_rc -eq 0 ]]; then
     ok=true
     n_ok=$((n_ok + 1))
-    log "$key ok new_frames=$new_frames"
+    log "$key ok new_frames=$new_frames feed_lag_h=$feed_lag_h auth=$auth"
   elif [[ $track_rc -eq 2 ]]; then
     fetch_ok=false
     n_fail=$((n_fail + 1))
@@ -136,19 +159,20 @@ while IFS=$'\t' read -r key slug kind _norad _f0; do
     n_fail=$((n_fail + 1))
     log "TRACK-FAILED $key: $track_script rc=$track_rc"
   fi
-  add_sat_json "$key" "{\"slug\":$(json_str "$slug"),\"ok\":$ok,\"fetch_ok\":$fetch_ok,\"fetch_rc\":$fetch_rc,\"track_rc\":$track_rc,\"new_frames\":$new_frames,\"alerts\":$n_alerts,\"snapshot\":$(json_str "${snap#"$ROOT"/}")}"
+  add_sat_json "$key" "{\"slug\":$(json_str "$slug"),\"ok\":$ok,\"fetch_ok\":$fetch_ok,\"fetch_rc\":$fetch_rc,\"track_rc\":$track_rc,\"new_frames\":$new_frames,\"feed_lag_h\":$feed_lag_h,\"auth\":$auth,\"stale\":$stale,\"alerts\":$n_alerts,\"snapshot\":$(json_str "${snap#"$ROOT"/}")}"
 done <<<"$rows"
 
 all_ok=false
 [[ $n_fail -eq 0 && $n_ok -gt 0 ]] && all_ok=true
 
 write_atomic "$ROOT/status/cycle.json" <<EOF
-{"job":"cycle","time_utc":"$(utc_iso)","run_ts":"$run_ts","ok":$all_ok,"n_ok":$n_ok,"n_failed":$n_fail,"n_fetch_failed":$n_fetch_fail,"sats":{${sats_json}}}
+{"job":"cycle","time_utc":"$(utc_iso)","run_ts":"$run_ts","ok":$all_ok,"n_ok":$n_ok,"n_failed":$n_fail,"n_fetch_failed":$n_fetch_fail,"n_stale":$n_stale,"sats":{${sats_json}}}
 EOF
 
-# Dead-man switch: ping only if every enabled satellite's fetch worked.
-if [[ $n_fetch_fail -eq 0 && $n_ok -gt 0 ]]; then hc_ping; fi
+# Dead-man switch: ping only if every enabled satellite's fetch worked and
+# none of the packet lists is stale.
+if [[ $n_fetch_fail -eq 0 && $n_stale -eq 0 && $n_ok -gt 0 ]]; then hc_ping; fi
 
-log "=== cycle end ok=$n_ok failed=$n_fail (fetch_failed=$n_fetch_fail)"
-summary "ok=$n_ok failed=$n_fail fetch_failed=$n_fetch_fail"
+log "=== cycle end ok=$n_ok failed=$n_fail (fetch_failed=$n_fetch_fail stale=$n_stale)"
+summary "ok=$n_ok failed=$n_fail fetch_failed=$n_fetch_fail stale=$n_stale"
 [[ $n_fail -eq 0 ]]

@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from logio import (  # noqa: E402
     append_rows,
     compact_json,
+    feed_health,
     iso_from_ms,
     load_fetch,
     load_packets_or_exit,
@@ -263,7 +264,7 @@ def track(
     routes = routes or {}
     if lasttlm_csv:  # independent of the packets response, so ingest first
         ingest_lasttlm(load_fetch(fetch_json), lasttlm_csv, source_sat)
-    _, packets = load_packets_or_exit(fetch_json)
+    capture, packets = load_packets_or_exit(fetch_json)
 
     states = {}
 
@@ -295,6 +296,7 @@ def track(
         append_rows(log_csv, FIELDS, [])  # create / migrate header anyway
 
     print(f"new_frames={len(all_new)}")
+    print(feed_health(capture, packets))
     if routes:
         for path in states:
             print(f"  {len(by_target.get(path, []))} -> {path}")

@@ -17,6 +17,8 @@
 #   TINYGS_PYTHON           interpreter                       (.venv/bin/python)
 #   TINYGS_PY_DIR           directory holding the pipeline scripts (tinygs_tle)
 #   TINYGS_ENV_FILE         secrets file sourced if present   ($HOME/tinygs.env)
+#   TINYGS_AUTH_STATE       TinyGS login (Playwright storage_state) ($HOME/.config/tinygs/auth.json)
+#   TINYGS_STALE_H          packet list older than this vs lastPacketTime => STALE-FEED (2)
 #   NOTIFY_URL, HC_PING_URL see notify() / hc_ping() below
 
 # --- repo root, PATH, defaults ----------------------------------------------
@@ -48,6 +50,17 @@ TINYGS_SATS_TSV="${TINYGS_SATS_TSV:-$TINYGS_REPO/deploy/satellites.tsv}"
 TINYGS_PYTHON="${TINYGS_PYTHON:-$TINYGS_REPO/.venv/bin/python}"
 TINYGS_PY_DIR="${TINYGS_PY_DIR:-$TINYGS_REPO/tinygs_tle}"
 ROOT="$TINYGS_DATA_ROOT"
+
+# TinyGS login: a Playwright storage_state JSON holding the web app's
+# `sessionToken`/`userId` localStorage entries (never committed; mode 600).
+# Used when present; the fetchers fall back to anonymous without it.
+TINYGS_AUTH_STATE="${TINYGS_AUTH_STATE:-${HOME:-/nonexistent}/.config/tinygs/auth.json}"
+TINYGS_STALE_H="${TINYGS_STALE_H:-2}"
+AUTH_ARGS=()
+# shellcheck disable=SC2034 # used by the wrappers that source this file
+if [[ -r "$TINYGS_AUTH_STATE" ]]; then
+  AUTH_ARGS=(--auth-state "$TINYGS_AUTH_STATE")
+fi
 ALERTS_LOG="$ROOT/alerts.log"
 
 # Make `set -e` deaths visible in the job log instead of silent.
