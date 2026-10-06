@@ -14,6 +14,7 @@
 #
 # Environment overrides (all optional):
 #   TINYGS_CLOUD_VOLUME     local stand-in for the data volume  (data/cloud)
+#   TINYGS_CLOUD_SATS       satellite keys to fetch, from deploy/satellites.tsv (electra)
 #   TINYGS_ARCHIVE_REPO     archive remote   (https://github.com/Open-Source-Space-Foundation/proves-electra-ops)
 #   TINYGS_ARCHIVE_BRANCH   archive branch   (tinygs-archive)
 #   TINYGS_ARCHIVE_CLONE    local clone of that branch          ($HOME/.cache/tinygs-archive)
@@ -31,11 +32,21 @@ export TINYGS_SENTINEL="$VOLUME/proves/.tinygs-data-root"
 export TINYGS_SKIP_UUID_CHECK=1 # no NVMe here; the guard still wants the sentinel
 ROOT="$TINYGS_DATA_ROOT"
 
+# Cloud runs fetch only these satellites (fewer TinyGS page loads, less risk of
+# rate limiting). The Mac mini keeps polling everything in deploy/satellites.tsv.
+CLOUD_SATS="${TINYGS_CLOUD_SATS:-electra}"
+export TINYGS_DETAILS_KEYS="$CLOUD_SATS"
+
 say() { printf 'cloud.sh: %s\n' "$*" >&2; }
 
 prepare_root() {
   mkdir -p "$ROOT/logs" "$ROOT/status"
   touch "$TINYGS_SENTINEL"
+  # satellites.tsv restricted to $CLOUD_SATS (comments and header kept)
+  export TINYGS_SATS_TSV="$ROOT/satellites.cloud.tsv"
+  awk -F '\t' -v keep=" $CLOUD_SATS " \
+    '/^#/ || $1 == "key" || index(keep, " " $1 " ") { print }' \
+    "$REPO/deploy/satellites.tsv" >"$TINYGS_SATS_TSV"
 }
 
 # Paths (relative to $ROOT) of the write-once files: raw snapshots and details.

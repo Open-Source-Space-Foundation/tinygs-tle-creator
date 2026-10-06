@@ -318,6 +318,7 @@ scripts/cloud.sh save      # commit new raw/ snapshots and details/ to tinygs-ar
 - `.claude/hooks/stop-save.sh` runs `save` after every turn, so nothing needs to be saved by hand. It does nothing when there is nothing new.
 - Only write-once files are committed (`<key>/raw/...json.gz`, `<key>/details/<id>.json`), so concurrent sessions never conflict. `log.csv` and fits are rebuilt from `raw/`.
 - To fold the cloud archive into the NVMe: check out `tinygs-archive` and `rsync -a --ignore-existing --exclude README.md <checkout>/ "$DATA_ROOT/"`.
+- Cloud runs fetch **only Electra** by default, to keep TinyGS page loads (and rate-limit risk) down; set `TINYGS_CLOUD_SATS="electra alcyone hucsat-1"` for more. The Mac mini still polls everything in `deploy/satellites.tsv`. Electra frames that TinyGS files under Alcyone are only picked up when `alcyone` is included.
 - TinyGS only returns the latest 50 packets per satellite, so occasional cloud runs supplement the Mac mini's 30-minute schedule; they don't replace it.
 
 ## Current known results
