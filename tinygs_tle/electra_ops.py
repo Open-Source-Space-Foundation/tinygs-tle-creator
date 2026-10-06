@@ -764,7 +764,6 @@ def write_status(state, frames):
     lines += [
         "# TinyGS scraper status (PROVES Electra, NORAD 69795)",
         "",
-        f"- **Updated:** {iso(t_now)}",
         f"- **Last successful scrape:** {state.get('last_ok_scrape')}",
         f"- **Cadence:** baseline every {BASE_CADENCE_MIN} min; extra scrapes at LOS+15 min and one orbit later for "
         f"every LA pass; every {UPLINK_CADENCE_MIN} min inside armed uplink windows; `ops/uplinks/` on "
