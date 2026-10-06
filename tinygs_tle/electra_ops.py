@@ -337,7 +337,8 @@ def git_retry(*a):
 
 def sync_ops():
     """Fetch main and our branch; merge main in (station files never collide with ours)."""
-    git_retry("fetch", "-q", "origin", UPLINK_BRANCH, OPS_BRANCH)
+    git_retry("fetch", "-q", "origin", UPLINK_BRANCH)
+    git("fetch", "-q", "origin", OPS_BRANCH, check=False)  # absent until our first push
     if git("rev-parse", "--abbrev-ref", "HEAD").strip() != OPS_BRANCH:
         git("checkout", "-q", OPS_BRANCH)
     if git("ls-remote", "--heads", "origin", OPS_BRANCH).strip():
