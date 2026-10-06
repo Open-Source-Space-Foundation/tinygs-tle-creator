@@ -171,6 +171,46 @@ def decode(raw):
 
 
 # --------------------------------------------------------------------------- data
+# Electra's F Prime dictionary (flight software 5f58e2a) lives on proves-electra-ops `portable-gds`;
+# the decoder is proves-electra-ops tools/tinygs_pass.py. Both are optional: without them event
+# frames are only tagged "event".
+DICT_REF = os.environ.get("ELECTRA_DICT_REF", "origin/portable-gds:gds/dict/ReferenceDeploymentTopologyDictionary.json")
+_DEC = {}
+
+
+def fprime():
+    if "dic" not in _DEC:
+        _DEC["dic"] = None
+        try:
+            import importlib.util
+
+            path = f"{ROOT}/electra_dict.json"
+            if not os.path.exists(path):
+                git("fetch", "-q", "origin", DICT_REF.split(":")[0].split("/", 1)[1], check=False)
+                with open(path, "w") as f:
+                    f.write(git("show", DICT_REF))
+            spec = importlib.util.spec_from_file_location("tinygs_pass", f"{OPS}/tools/tinygs_pass.py")
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            _DEC["mod"], _DEC["dic"] = mod, mod.Dictionary(path)
+        except Exception as e:  # noqa: BLE001
+            log("WARN no F Prime dictionary; events stay undecoded:", e)
+    return _DEC.get("mod"), _DEC["dic"]
+
+
+def contents(raw_b64):
+    """'EVT fileUplink.FileReceived(...) | Beacon | ...' for one frame, or '' without a dictionary."""
+    import base64
+
+    mod, dic = fprime()
+    if not dic:
+        return ""
+    try:
+        return " | ".join(mod.decode_frame(dic, base64.b64decode(raw_b64))["items"])
+    except Exception as e:  # noqa: BLE001
+        return f"decode error: {e}"
+
+
 
 
 def snapshot_files():
@@ -679,6 +719,9 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
             "single_station_gaps": gaps,
             "sc_clock_gap_hist_s": _hist([g["gap_s"] for g in sc_gaps(frames, start, end)]),
         },
+        "events": [{"t": iso(f["t"]), "stations": _stations(f), "tinygs_id": f["id"],
+                    "items": [x[4:] for x in contents(f["raw"]).split(" | ") if x.startswith("EVT ")]}
+                   for f in win if "event" in f["kinds"]],
         "feed_coverage_gaps_utc": coverage_gaps(coverage, start, min(end, t_now)),
         "verdicts": verdicts,
         "notes": [
@@ -699,9 +742,10 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
         w.writerows(rx_rows)
     with open(f"{d}/frames.csv", "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["server_utc", "tinygs_id", "stations", "crc_ok", "kind", "raw_b64"])
+        w.writerow(["server_utc", "tinygs_id", "stations", "crc_ok", "kind", "contents", "raw_b64"])
         for fr in win:
-            w.writerow([iso(fr["t"]), fr["id"], fr["n_stations"], fr["crc_ok"], "+".join(fr["kinds"]), fr["raw"]])
+            w.writerow([iso(fr["t"]), fr["id"], fr["n_stations"], fr["crc_ok"], "+".join(fr["kinds"]),
+                        contents(fr["raw"]), fr["raw"]])
     vs = verdict_summary(verdicts)
     seq = summary["fields"]["CurrentSequenceNumber"]
     lines = [
@@ -710,7 +754,8 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
         f"- Window {iso(start)} to {iso(end)}: {len(win)} frames, {summary['beacons_in_window']} Beacons, "
         f"{len(stations)} station(s) with details" + (f", details pending for {missing}" if missing else ""),
         f"- CurrentSequenceNumber: before {(seq['before'] or {}).get('value')}, max in window {seq['max_in_window']}, "
-        f"{len(seq['changes'])} change(s)",
+        f"{len(seq['changes'])} change(s); {sum(len(x['items']) for x in summary['events'])} event(s) decoded "
+        f"in {len(summary['events'])} frame(s) (summary.json `events`, frames.csv `contents`)",
         f"- Feed coverage gaps: {len(summary['feed_coverage_gaps_utc'])}. Data through "
         f"{summary['data_through_utc']}; details in summary.json",
     ]
