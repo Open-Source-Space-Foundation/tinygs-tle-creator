@@ -434,10 +434,17 @@ def commit_push(msg, paths):
 def scrape(state):
     env = dict(os.environ, PATH=f"{REPO}/.venv/bin:" + os.environ.get("PATH", ""), VIRTUAL_ENV=f"{REPO}/.venv",
                TINYGS_AUTH_STATE=AUTH)
-    try:
-        r = subprocess.run([f"{REPO}/scripts/cloud.sh", "cycle"], env=env, capture_output=True, text=True, timeout=600)
-    except subprocess.TimeoutExpired:
-        r = subprocess.CompletedProcess([], 124, "", "cloud.sh cycle timed out\n")
+    for attempt in (1, 2):
+        try:
+            r = subprocess.run([f"{REPO}/scripts/cloud.sh", "cycle"], env=env, capture_output=True, text=True,
+                               timeout=600)
+        except subprocess.TimeoutExpired:
+            r = subprocess.CompletedProcess([], 124, "", "cloud.sh cycle timed out\n")
+        if r.returncode == 0 or attempt == 2:
+            break
+        # the logged-in page sometimes never issues /v4/packets; one reload a minute later usually works
+        log("scrape attempt failed; retrying once in 60 s")
+        time.sleep(60)
     sys.stderr.write(r.stdout[-1500:] + r.stderr[-1500:])
     t = now()
     snaps = sorted(glob.glob(f"{SAT_DIR}/raw/*/*/*/*.json.gz"))
