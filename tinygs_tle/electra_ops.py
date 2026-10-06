@@ -7,6 +7,7 @@ writes results into a proves-electra-ops checkout:
 
   ops/scraper/STATUS.md           heartbeat, latest Beacon, ALERT block
   ops/scraper/la-passes.json      LA passes for the next 48 h (horizon 0 deg)
+  (raw snapshots and detail files go to the tinygs-archive branch via scripts/cloud.sh save)
   passes/<pass>/tinygs/           summary.json, receptions.csv, frames.csv, README.md
 
 Subcommands:
@@ -978,6 +979,22 @@ def tick(state):
     out_paths, msgs, alert = analyze(state)
     save_state(state)
     commit_all(state, out_paths, msgs, alert)
+    archive_save()
+
+
+def archive_save():
+    """Push new raw snapshots and detail files to the tinygs-archive branch (scripts/cloud.sh save;
+    write-once files, a no-op when nothing is new)."""
+    try:
+        r = subprocess.run([f"{REPO}/scripts/cloud.sh", "save"], capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        log("WARN archive save timed out")
+        return
+    msg = (r.stderr or r.stdout).strip().splitlines()
+    if r.returncode:
+        log("WARN archive save failed:", " | ".join(msg[-3:]))
+    elif msg and "saved" in msg[-1]:
+        log(msg[-1])
 
 
 def run():

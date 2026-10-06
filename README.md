@@ -335,6 +335,7 @@ scripts/electra_ops.sh status   # running? + log tail
 - After each scrape, up to 15 per-station detail page loads (1/min), packets in pass/uplink windows first.
 - Pass prediction: newest CelesTrak TLE for 69795, skyfield, horizon 0 deg, refreshed daily.
 - Beacon decode reads `CurrentSequenceNumber` at channel bytes 65-69 (TinyGS's `reserved`), not `SeqNumLora`.
+- Every loop tick runs `scripts/cloud.sh save`, so raw snapshots and detail files go to the `tinygs-archive` branch as they arrive.
 - The container is ephemeral: restart the loop with `scripts/electra_ops.sh start` in a new session. State lives in `data/cloud/proves/tinygs/electra_ops_state.json`; pass results are rebuilt from what has been scraped.
 
 ## Current known results
