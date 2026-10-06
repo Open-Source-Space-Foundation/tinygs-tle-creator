@@ -2,3 +2,4 @@ playwright
 numpy
 scipy
 sgp4
+skyfield

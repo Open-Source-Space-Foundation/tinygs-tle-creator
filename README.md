@@ -321,6 +321,22 @@ scripts/cloud.sh save      # commit new raw/ snapshots and details/ to tinygs-ar
 - Cloud runs fetch **only Electra** by default, to keep TinyGS page loads (and rate-limit risk) down; set `TINYGS_CLOUD_SATS="electra alcyone hucsat-1"` for more. The Mac mini still polls everything in `deploy/satellites.tsv`. Electra frames that TinyGS files under Alcyone are only picked up when `alcyone` is included.
 - TinyGS only returns the latest 50 packets per satellite, so occasional cloud runs supplement the Mac mini's 30-minute schedule; they don't replace it.
 
+### Electra scraper for the LA station (`electra_ops.py`)
+
+`tinygs_tle/electra_ops.py` is the TinyGS side of the LA station's repo-as-bus protocol: it scrapes Electra only, predicts LA passes, watches `ops/uplinks/` on proves-electra-ops `main`, and writes `ops/scraper/STATUS.md`, `ops/scraper/la-passes.json` and `passes/<pass>/tinygs/` (summary.json, receptions.csv, frames.csv, README.md) to a proves-electra-ops branch (`ELECTRA_OPS_BRANCH`).
+
+```sh
+scripts/electra_ops.sh start    # start the loop in the background unless it's already running
+scripts/electra_ops.sh status   # running? + log tail
+.venv/bin/python tinygs_tle/electra_ops.py predict|scrape|analyze|tick   # one step by hand
+```
+
+- Scrapes every 45 min, plus at LOS+15 min and one orbit later for every LA pass, and every 20 min inside an armed uplink window (AOS-95 min to the latest `expect[].until` + 2 h). A scrape is one TinyGS page load; never more often than every 8 min.
+- After each scrape, up to 15 per-station detail page loads (1/min), packets in pass/uplink windows first.
+- Pass prediction: newest CelesTrak TLE for 69795, skyfield, horizon 0 deg, refreshed daily.
+- Beacon decode reads `CurrentSequenceNumber` at channel bytes 65-69 (TinyGS's `reserved`), not `SeqNumLora`.
+- The container is ephemeral: restart the loop with `scripts/electra_ops.sh start` in a new session. State lives in `data/cloud/proves/tinygs/electra_ops_state.json`; pass results are rebuilt from what has been scraped.
+
 ## Current known results
 
 See `examples/fit_report.txt` / `examples/fit_report.json` /
