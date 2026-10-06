@@ -68,6 +68,7 @@ HEARTBEAT_H = 6
 # Alert thresholds from the handoff
 BOOT_BASE, MODE_OK, V_MIN = 38, 2, 9.5
 V_BATT_MIN = 7.4  # 2S Li-ion, about 3.7 V per cell
+V_BATT_BAND_MAX = 8.5  # battery-connected readings sit at 8.3-8.42 V
 
 FIELDS = {  # handoff short name -> our key
     "CurrentSequenceNumber": "CurrentSequenceNumber",
@@ -805,7 +806,9 @@ def write_status(state, frames):
         if b["Voltage"] < V_MIN:
             # ~8.4 V with SysPower > 0 is the battery-connected reading (ops README); only
             # a low reading with the battery disconnected, or below V_BATT_MIN, alerts.
-            if b["SysPower"] > 0 and b["Voltage"] >= V_BATT_MIN:
+            # SysPower 0 at 8.x V is the switch-over Beacon as the battery reconnects (seen 2026-10-06 17:55:25,
+            # next Beacon 8.376 V / 0.378 W), so the battery band is judged by voltage alone.
+            if b["Voltage"] >= V_BATT_MIN and (b["SysPower"] > 0 or b["Voltage"] <= V_BATT_BAND_MAX):
                 if f["crc_ok"]:
                     vnotes.append(f)
             else:
@@ -826,7 +829,7 @@ def write_status(state, frames):
                   f"with SysPower > 0, latest {iso(vnotes[-1]['t'])}. That is the battery-connected reading "
                   "(ops README: real battery about 8.4 V; 10-11 V with Power 0 is the solar reading with the "
                   f"protection circuit open), so it is not treated as < {V_MIN} V. Readings below {V_BATT_MIN} V, "
-                  "or below 9.5 V with SysPower 0, do alert.", ""]
+                  f"or between {V_BATT_BAND_MAX} and {V_MIN} V with SysPower 0, do alert.", ""]
     lines += [
         "# TinyGS scraper status (PROVES Electra, NORAD 69795)",
         "",
