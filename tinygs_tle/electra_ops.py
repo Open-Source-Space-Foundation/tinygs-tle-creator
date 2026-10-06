@@ -597,9 +597,12 @@ def coverage_gaps(coverage, start, end):
         cur = max(cur, b)
         if cur >= e:
             break
-    if cur < min(e, now().timestamp() * 1000):
-        gaps.append([iso(dt.datetime.fromtimestamp(cur / 1000, UTC)),
-                     iso(min(end, now()))])
+    # trailing stretch only up to the latest scrape (not "now"), so outputs don't change between scrapes
+    snaps = [dt.datetime.strptime(c["snapshot"], "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC)
+             for c in coverage if c.get("snapshot", "").endswith("Z")]
+    last = min(end, max(snaps)) if snaps else end
+    if cur < last.timestamp() * 1000:
+        gaps.append([iso(dt.datetime.fromtimestamp(cur / 1000, UTC)), iso(last)])
     return gaps
 
 
@@ -651,8 +654,8 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
     verdicts = [evaluate(e, frames, t_now, final) for e in expect]
     gaps, _ = station_gaps(frames, start, end)
     summary = {
-        "generated_utc": iso(t_now),
         "final": final,
+        "data_through_utc": iso(max((f["t"] for f in frames), default=None)),
         "window_utc": [iso(start), iso(end)],
         **meta,
         "frames_in_window": len(win),
@@ -698,8 +701,8 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
         f"{len(stations)} station(s) with details" + (f", details pending for {missing}" if missing else ""),
         f"- CurrentSequenceNumber: before {(seq['before'] or {}).get('value')}, max in window {seq['max_in_window']}, "
         f"{len(seq['changes'])} change(s)",
-        f"- Feed coverage gaps: {len(summary['feed_coverage_gaps_utc'])}. Generated {iso(t_now)}; "
-        "details in summary.json",
+        f"- Feed coverage gaps: {len(summary['feed_coverage_gaps_utc'])}. Data through "
+        f"{summary['data_through_utc']}; details in summary.json",
     ]
     open(f"{d}/README.md", "w").write("\n".join(lines) + "\n")
     return f"passes/{folder}/tinygs", vs
