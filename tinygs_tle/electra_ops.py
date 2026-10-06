@@ -320,7 +320,10 @@ def merge_passes(state, doc):
 
 
 def git(*a, check=True, cwd=OPS):
-    r = subprocess.run(["git", "-C", cwd, *a], capture_output=True, text=True)
+    try:
+        r = subprocess.run(["git", "-C", cwd, *a], capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired as e:
+        raise RuntimeError(f"git {' '.join(a)}: timed out") from e
     if check and r.returncode:
         raise RuntimeError(f"git {' '.join(a)}: {r.stderr.strip()}")
     return r.stdout
@@ -345,7 +348,7 @@ def sync_ops():
     if git("ls-remote", "--heads", "origin", OPS_BRANCH).strip():
         git("merge", "-q", "--no-edit", f"origin/{OPS_BRANCH}", check=False)
     r = subprocess.run(["git", "-C", OPS, "merge", "-q", "--no-edit", f"origin/{UPLINK_BRANCH}"],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, timeout=120)
     if r.returncode:
         git("merge", "--abort", check=False)
         log("WARN merge of", UPLINK_BRANCH, "failed:", r.stderr.strip())
@@ -373,8 +376,11 @@ def commit_push(msg, paths):
         "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
         "Claude-Session: https://claude.ai/code/session_013Bc5t1hD67bMMCUn8z4Yxn")
     for d in (2, 4, 8, 16, 0):
-        if subprocess.run(["git", "-C", OPS, "push", "-q", "-u", "origin", OPS_BRANCH]).returncode == 0:
-            return True
+        try:
+            if subprocess.run(["git", "-C", OPS, "push", "-q", "-u", "origin", OPS_BRANCH], timeout=120).returncode == 0:
+                return True
+        except subprocess.TimeoutExpired:
+            pass
         git("pull", "-q", "--no-rebase", "--no-edit", "origin", OPS_BRANCH, check=False)
         time.sleep(d)
     log("WARN push failed; committed locally")
@@ -387,7 +393,10 @@ def commit_push(msg, paths):
 def scrape(state):
     env = dict(os.environ, PATH=f"{REPO}/.venv/bin:" + os.environ.get("PATH", ""), VIRTUAL_ENV=f"{REPO}/.venv",
                TINYGS_AUTH_STATE=AUTH)
-    r = subprocess.run([f"{REPO}/scripts/cloud.sh", "cycle"], env=env, capture_output=True, text=True)
+    try:
+        r = subprocess.run([f"{REPO}/scripts/cloud.sh", "cycle"], env=env, capture_output=True, text=True, timeout=600)
+    except subprocess.TimeoutExpired:
+        r = subprocess.CompletedProcess([], 124, "", "cloud.sh cycle timed out\n")
     sys.stderr.write(r.stdout[-1500:] + r.stderr[-1500:])
     t = now()
     snaps = sorted(glob.glob(f"{SAT_DIR}/raw/*/*/*/*.json.gz"))
@@ -926,6 +935,18 @@ def due_scrape(state, t_now):
     return None
 
 
+def in_marker_window(state, t_now):
+    for u in state.get("uplinks_cache", {}).values():
+        for e in u.get("expect", []):
+            try:
+                if e.get("field") == "beacon_spacing_s" and float(e["value"]) <= 15 and \
+                        parse_t(e["from"]) - dt.timedelta(minutes=6) <= t_now <= parse_t(e["until"]) + dt.timedelta(minutes=10):
+                    return True
+            except (KeyError, ValueError, TypeError):
+                continue
+    return False
+
+
 def tick(state):
     t_now = now()
     try:
@@ -969,7 +990,7 @@ def run():
         except Exception as e:  # noqa: BLE001 - keep the loop alive
             log("ERROR tick:", repr(e))
         save_state(state)
-        time.sleep(POLL_MIN * 60)
+        time.sleep(60 * (4 if in_marker_window(state, now()) else POLL_MIN))
 
 
 def main():
