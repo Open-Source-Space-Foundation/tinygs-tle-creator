@@ -303,6 +303,23 @@ To seed the July archive: rsync the laptop's `proves-pass-data/tinygs/` to
 - **Every cycle is `FETCH-FAILED`.** Cloudflare is probably challenging headless Chromium. Look at the archived raw snapshot for that run, and run `.venv/bin/python tinygs_tle/tinygs_fetch.py --sat PROVES_Electra --out /tmp/t.json` by hand as the pipeline user.
 - **Jobs don't run after a reboot.** Check that the plists are in `/Library/LaunchDaemons` (not `~/Library/LaunchAgents`), and that `launchctl print system/<label>` shows them.
 
+## Claude Code cloud sessions
+
+Cloud sessions can run the same `cycle.sh`/`details.sh` wrappers. `scripts/cloud.sh` points them at a data root inside the container (`data/cloud/proves/tinygs/`, same layout as the NVMe) and saves what they scrape to the **`tinygs-archive` branch of [proves-electra-ops](https://github.com/Open-Source-Space-Foundation/proves-electra-ops/tree/tinygs-archive)**:
+
+```sh
+scripts/cloud.sh cycle     # fetch + archive + track every enabled satellite
+scripts/cloud.sh details   # one rate-limited detail batch
+scripts/cloud.sh save      # commit new raw/ snapshots and details/ to tinygs-archive and push
+```
+
+- **Start the session with both `tinygs-tle-creator` and `proves-electra-ops` selected.** A session can only push to repos attached to it; otherwise `save` fails with a warning and the data is lost when the container is reclaimed.
+- `.claude/hooks/session-start.sh` builds the venv and writes the TinyGS login to `~/.config/tinygs/auth.json` from the environment variables `TINYGS_SESSION_TOKEN` and `TINYGS_USER_ID`; the wrappers pick it up from there.
+- `.claude/hooks/stop-save.sh` runs `save` after every turn, so nothing needs to be saved by hand. It does nothing when there is nothing new.
+- Only write-once files are committed (`<key>/raw/...json.gz`, `<key>/details/<id>.json`), so concurrent sessions never conflict. `log.csv` and fits are rebuilt from `raw/`.
+- To fold the cloud archive into the NVMe: check out `tinygs-archive` and `rsync -a --ignore-existing --exclude README.md <checkout>/ "$DATA_ROOT/"`.
+- TinyGS only returns the latest 50 packets per satellite, so occasional cloud runs supplement the Mac mini's 30-minute schedule; they don't replace it.
+
 ## Current known results
 
 See `examples/fit_report.txt` / `examples/fit_report.json` /
