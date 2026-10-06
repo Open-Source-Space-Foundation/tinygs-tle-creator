@@ -57,6 +57,7 @@ NORAD = 69795
 STATION = dict(lat=34.0047840, lon=-118.3376408, alt_m=200.0)
 BASE_CADENCE_MIN = 45
 UPLINK_CADENCE_MIN = 20
+MARKER_CADENCE_MIN = 8  # inside fast-Beacon marker windows only
 GAP_RETRY_MIN = 20
 POLL_MIN = 10
 ORBIT_MIN = 95
@@ -908,6 +909,17 @@ def due_scrape(state, t_now):
             continue
         if a <= t_now <= end and t_now - last >= dt.timedelta(minutes=UPLINK_CADENCE_MIN):
             return f"uplink {name}"
+        # fast-Beacon marker windows: one 50-frame page covers only ~8 min of 10 s Beacons
+        for e in u.get("expect", []):
+            try:
+                if e.get("field") != "beacon_spacing_s" or float(e["value"]) > 15:
+                    continue
+                f0 = parse_t(e["from"]) - dt.timedelta(minutes=2)
+                f1 = parse_t(e["until"]) + dt.timedelta(minutes=10)
+            except (KeyError, ValueError, TypeError):
+                continue
+            if f0 <= t_now <= f1 and t_now - last >= dt.timedelta(minutes=MARKER_CADENCE_MIN):
+                return f"uplink {name} marker {e.get('id')}"
     return None
 
 
