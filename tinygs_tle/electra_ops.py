@@ -585,6 +585,44 @@ def evaluate(e, frames, t_now, final):
     out = {"id": e.get("id"), "field": e.get("field"), "op": e.get("op"), "value": val, "tolerance": tol,
            "from": e.get("from"), "until": e.get("until")}
     closed = t_now > end and final
+    if e.get("event") and not e.get("field"):
+        # {"event": "fileManager.CalculateCrcSucceeded", "value": "0x41894B1D"}: met when that event is heard
+        # in [from, until] with an argument equal to value (ints compared numerically, hex allowed)
+        import re
+
+        want = str(e["event"]).split(".", 1)[-1] if str(e["event"]).count(".") > 1 else str(e["event"])
+        want = want.rsplit(".", 2)[-2] + "." + want.rsplit(".", 1)[-1] if "." in want else want
+
+        def num(x):
+            try:
+                return int(str(x), 0)
+            except ValueError:
+                return None
+        target = e.get("value")
+        seen, match = [], []
+        for f in frames:
+            if not (start <= f["t"] <= end and "event" in f["kinds"]):
+                continue
+            for item in contents(f["raw"]).split(" | "):
+                m = re.match(r"EVT ([\w.]+)\((.*)\)$", item)
+                if not m or not m.group(1).endswith(want):
+                    continue
+                args = dict(a.split("=", 1) for a in re.split(r", (?=\w+=)", m.group(2)) if "=" in a)
+                rec = {"t": iso(f["t"]), "stations": _stations(f), "tinygs_id": f["id"], "event": m.group(1),
+                       "args": args}
+                seen.append(rec)
+                if target is None or any(v == str(target) or (num(v) is not None and num(v) == num(target))
+                                         for v in args.values()):
+                    match.append(rec)
+        out.update(event=e["event"], expected=target, seen=seen,
+                   expected_int=num(target) if target is not None else None)
+        if match:
+            v = "met"
+        elif seen:
+            v = "not_met" if closed else "pending"
+        else:
+            v = "no_data" if closed else "pending"
+        return {**out, "verdict": v}
     if e.get("packet") and not e.get("field"):
         want = str(e["packet"]).rsplit(".", 1)[-1]
         hits = [{"t": iso(f["t"]), "stations": _stations(f), "tinygs_id": f["id"], "channels": ch,
