@@ -59,6 +59,7 @@ STATION = dict(lat=34.0047840, lon=-118.3376408, alt_m=200.0)
 BASE_CADENCE_MIN = 45
 UPLINK_CADENCE_MIN = 20
 MARKER_CADENCE_MIN = 8  # inside fast-Beacon marker windows only
+PASS_CADENCE_MIN = 3  # armed uplink pass, AOS-5..LOS+15: 8 s telemetry fills a 50-frame page in ~3-4 min
 GAP_RETRY_MIN = 20
 POLL_MIN = 10
 ORBIT_MIN = 95
@@ -197,6 +198,35 @@ def fprime():
         except Exception as e:  # noqa: BLE001
             log("WARN no F Prime dictionary; events stay undecoded:", e)
     return _DEC.get("mod"), _DEC["dic"]
+
+
+def telemetry(raw_b64):
+    """[(packet name, {channel short name: value})] for every non-Beacon telemetry packet in a frame."""
+    import base64
+
+    mod, dic = fprime()
+    if not dic:
+        return []
+    out = []
+    try:
+        raw = base64.b64decode(raw_b64)
+        b = raw[4:] if raw[:4] == b"\0\0\0\0" else raw
+        sp, i = b[6:-2], 0
+        while i + 6 <= len(sp):
+            apid = int.from_bytes(sp[i:i + 2], "big") & 0x7FF
+            n = int.from_bytes(sp[i + 4:i + 6], "big") + 1
+            if apid not in (2, 4):
+                break
+            if apid == 4:
+                secs, pid, name, vals = dic.telemetry(sp[i + 6:i + 6 + n])
+                if pid != 1:
+                    out.append((name.rsplit(".", 1)[-1], {k.rsplit(".", 2)[-2] + "." + k.rsplit(".", 1)[-1]:
+                                                          mod.fmt(v) if isinstance(v, (dict, list)) else v
+                                                          for k, v in vals.items()}, secs))
+            i += 6 + n
+    except Exception as e:  # noqa: BLE001
+        out.append(("decode_error", {"error": str(e)}, None))
+    return out
 
 
 def contents(raw_b64):
@@ -554,9 +584,17 @@ def evaluate(e, frames, t_now, final):
     val, tol = e.get("value"), e.get("tolerance")
     out = {"id": e.get("id"), "field": e.get("field"), "op": e.get("op"), "value": val, "tolerance": tol,
            "from": e.get("from"), "until": e.get("until")}
+    closed = t_now > end and final
+    if e.get("packet") and not e.get("field"):
+        want = str(e["packet"]).rsplit(".", 1)[-1]
+        hits = [{"t": iso(f["t"]), "stations": _stations(f), "tinygs_id": f["id"], "channels": ch,
+                 "sc_time": iso(dt.datetime.fromtimestamp(secs, UTC)) if secs else None}
+                for f in frames if start <= f["t"] <= end and any(k.startswith("tlm") for k in f["kinds"])
+                for name, ch, secs in telemetry(f["raw"]) if name == want]
+        out.update(packet=want, count=len(hits), samples=hits)
+        return {**out, "verdict": "met" if hits else ("no_data" if closed else "pending")}
     if op is None:
         return {**out, "verdict": "no_data", "note": f"unsupported op {e.get('op')!r}"}
-    closed = t_now > end and final
     if e.get("field") == "beacon_spacing_s":
         gaps, complete = station_gaps(frames, start, end)
         hits = [g for g in gaps if op(g["gap_s"], val, tol)]
@@ -730,6 +768,10 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
         "events": [{"t": iso(f["t"]), "stations": _stations(f), "tinygs_id": f["id"],
                     "items": [x[4:] for x in contents(f["raw"]).split(" | ") if x.startswith("EVT ")]}
                    for f in win if "event" in f["kinds"]],
+        "telemetry": [{"t": iso(f["t"]), "stations": _stations(f), "tinygs_id": f["id"], "packet": name,
+                       "sc_time": iso(dt.datetime.fromtimestamp(secs, UTC)) if secs else None, "channels": ch}
+                      for f in win if any(k.startswith("tlm") for k in f["kinds"])
+                      for name, ch, secs in telemetry(f["raw"])],
         "feed_coverage_gaps_utc": coverage_gaps(coverage, start, min(end, t_now)),
         "verdicts": verdicts,
         "notes": [
@@ -954,8 +996,11 @@ def commit_all(state, out_paths, msgs, alert):
 def due_scrape(state, t_now):
     last = parse_t(state["last_ok_scrape"]) if state.get("last_ok_scrape") else None
     last_try = parse_t(state["scrapes"][-1]["t"]) if state.get("scrapes") else None
-    if last_try and t_now - last_try < dt.timedelta(minutes=8):
+    core = in_pass_core(state, t_now)
+    if last_try and t_now - last_try < dt.timedelta(minutes=PASS_CADENCE_MIN if core else 8):
         return None  # never more often than this, even after a failure
+    if core and (last is None or t_now - last >= dt.timedelta(minutes=PASS_CADENCE_MIN)):
+        return f"uplink pass core {core}"
     if last is None or t_now - last >= dt.timedelta(minutes=BASE_CADENCE_MIN):
         return "baseline"
     if state.get("gap_retry_at") and t_now >= parse_t(state["gap_retry_at"]):
@@ -991,7 +1036,37 @@ def due_scrape(state, t_now):
     return None
 
 
+def in_pass_core(state, t_now):
+    """Name of the armed uplink whose pass is between AOS-5 min and LOS+15 min, else None."""
+    for name, u in state.get("uplinks_cache", {}).items():
+        try:
+            if parse_t(u["pass"]["aos"]) - dt.timedelta(minutes=5) <= t_now <= \
+                    parse_t(u["pass"]["los"]) + dt.timedelta(minutes=15):
+                return name
+        except (KeyError, ValueError, TypeError):
+            continue
+    return None
+
+
+def next_sleep_s(state, t_now):
+    """1 min inside an armed pass core, 4 min in marker windows, else POLL_MIN, but never past the
+    start (AOS-5 min) of an armed pass's core window."""
+    if in_pass_core(state, t_now):
+        return 60
+    s = 60 * (4 if in_marker_window(state, t_now) else POLL_MIN)
+    for u in state.get("uplinks_cache", {}).values():
+        try:
+            dt_s = (parse_t(u["pass"]["aos"]) - dt.timedelta(minutes=5) - t_now).total_seconds()
+        except (KeyError, ValueError, TypeError):
+            continue
+        if 0 < dt_s < s:
+            s = dt_s + 1
+    return max(s, 5)
+
+
 def in_marker_window(state, t_now):
+    if in_pass_core(state, t_now):
+        return True
     for u in state.get("uplinks_cache", {}).values():
         for e in u.get("expect", []):
             try:
@@ -1062,7 +1137,7 @@ def run():
         except Exception as e:  # noqa: BLE001 - keep the loop alive
             log("ERROR tick:", repr(e))
         save_state(state)
-        time.sleep(60 * (4 if in_marker_window(state, now()) else POLL_MIN))
+        time.sleep(next_sleep_s(state, now()))
 
 
 def main():
