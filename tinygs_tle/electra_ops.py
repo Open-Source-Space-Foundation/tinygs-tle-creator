@@ -160,6 +160,7 @@ def decode(raw):
                 out["beacon"] = {
                     "BootCount": int.from_bytes(ch[0:8], "big"),
                     "CurrentMode": ch[8],
+                    "AngularVelocity": [round(struct.unpack(">d", ch[9 + 8 * k:17 + 8 * k])[0], 5) for k in range(3)],
                     "Voltage": round(struct.unpack(">d", ch[33:41])[0], 3),
                     "SysPower": round(struct.unpack(">d", ch[41:49])[0], 4),
                     "SolPower": round(struct.unpack(">d", ch[49:57])[0], 4),
@@ -765,6 +766,7 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
         rx = receptions(f)
         b = f["beacon"] or {}
         dec = [b.get(k, "") for k in ("BootCount", "CurrentMode", "Voltage", "CurrentSequenceNumber", "BytesReceived")]
+        dec.append(" ".join(str(x) for x in b["AngularVelocity"]) if b.get("AngularVelocity") else "")
         kind = "+".join(f["kinds"]) or "?"
         if rx is None:
             missing += 1
@@ -798,6 +800,7 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
         "last_reception": {"t": iso(win[-1]["t"]), "stations": _stations(win[-1])} if win else None,
         "station_details_missing_for_frames": missing,
         "receptions_per_station": stations,
+        "beacons": beacon_list(win),
         "fields": {k: field_history(frames, start, end, k) for k in TRACKED},
         "beacon_spacing": {
             "single_station_gaps": gaps,
@@ -826,6 +829,7 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
         w = csv.writer(f)
         w.writerow(["utc", "station", "lat", "lon", "rssi_dbm", "snr_db", "freq_error_hz", "frame_counter", "kind",
                     "sc_time", "BootCount", "CurrentMode", "Voltage", "CurrentSequenceNumber", "BytesReceived",
+                    "imuManager.AngularVelocity_xyz",
                     "tinygs_id", "note"])
         w.writerows(rx_rows)
     with open(f"{d}/frames.csv", "w", newline="") as f:
@@ -849,6 +853,33 @@ def write_pass(folder, frames, coverage, start, end, expect, final, meta, la_pas
     ]
     open(f"{d}/README.md", "w").write("\n".join(lines) + "\n")
     return f"passes/{folder}/tinygs", vs
+
+
+def beacon_list(win):
+    """Every Beacon in the window: times, Electra clock gap to the previous one, CurrentSequenceNumber,
+    imuManager.AngularVelocity, and each receiving station with RSSI/SNR (when details are fetched)."""
+    out, prev_sc = [], None
+    for f in win:
+        b = f["beacon"]
+        if not b:
+            continue
+        rx = receptions(f)
+        out.append({
+            "t": iso(f["t"]),
+            "sc_time": iso(dt.datetime.fromtimestamp(f["sc_time"], UTC)) if f["sc_time"] else None,
+            "sc_gap_s": (f["sc_time"] - prev_sc) if f["sc_time"] and prev_sc else None,
+            "authenticatelora.CurrentSequenceNumber": b["CurrentSequenceNumber"],
+            "lora.BytesReceived": b["BytesReceived"],
+            "imuManager.AngularVelocity": dict(zip("xyz", b.get("AngularVelocity") or [])),
+            "ina219SysManager.Voltage": b["Voltage"],
+            "stations": ([{"station": r["station"], "t": iso(r["t"]), "rssi_dbm": r["rssi"], "snr_db": r["snr"],
+                           "freq_error_hz": r["freq_error"]} for r in rx] if rx is not None
+                         else f"{f['n_stations']} station(s), details pending"),
+            "tinygs_id": f["id"],
+        })
+        if f["sc_time"]:
+            prev_sc = f["sc_time"]
+    return out
 
 
 def verdict_summary(vs):
