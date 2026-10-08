@@ -221,8 +221,9 @@ def telemetry(raw_b64):
             if apid == 4:
                 secs, pid, name, vals = dic.telemetry(sp[i + 6:i + 6 + n])
                 if pid != 1:
-                    out.append((name.rsplit(".", 1)[-1], {k.rsplit(".", 2)[-2] + "." + k.rsplit(".", 1)[-1]:
-                                                          mod.fmt(v) if isinstance(v, (dict, list)) else v
+                    # full component paths: one packet can carry the same channel from two instances
+                    # (ComCcsdsLora.authenticatelora.* vs ComCcsdsUart.authenticate.*)
+                    out.append((name.rsplit(".", 1)[-1], {k: mod.fmt(v) if isinstance(v, (dict, list)) else v
                                                           for k, v in vals.items()}, secs))
             i += 6 + n
     except Exception as e:  # noqa: BLE001
@@ -238,9 +239,18 @@ def contents(raw_b64):
     if not dic:
         return ""
     try:
-        return " | ".join(mod.decode_frame(dic, base64.b64decode(raw_b64))["items"])
+        items = mod.decode_frame(dic, base64.b64decode(raw_b64))["items"]
     except Exception as e:  # noqa: BLE001
         return f"decode error: {e}"
+    # decode_frame keys TLM channels by short name, so a channel present in two component instances
+    # collapses to the last one; re-render TLM items with full paths from telemetry()
+    tlm = iter(telemetry(raw_b64))
+    for j, it in enumerate(items):
+        if it.startswith("TLM "):
+            name, ch, _ = next(tlm, (None, None, None))
+            if ch is not None:
+                items[j] = f"TLM {name}(" + ", ".join(f"{k}={v}" for k, v in ch.items()) + ")"
+    return " | ".join(items)
 
 
 
@@ -659,7 +669,10 @@ def evaluate(e, frames, t_now, final):
         if v != "met" and sc_hits and "basis_used" not in out:
             out["note"] = "no single-station gap matched, but Electra's clock shows matching Beacon spacing"
         return {**out, "verdict": v}
-    key = FIELDS.get(e.get("field"), FIELDS.get(str(e.get("field")).rsplit(".", 1)[-1]))
+    fld = str(e.get("field"))
+    key = FIELDS.get(fld, FIELDS.get(fld.rsplit(".", 1)[-1]))
+    if "ComCcsdsUart" in fld or ".authenticate." in "." + fld:
+        key = None  # Beacon fields are the LoRa instance (ComCcsdsLora.authenticatelora.*), never UART
     if key is None:
         return {**out, "verdict": "no_data", "note": f"unknown field {e.get('field')!r}"}
     quant = e.get("quantifier") or ("any" if e.get("op") in (">=", ">") else "all")
@@ -868,10 +881,10 @@ def beacon_list(win):
             "t": iso(f["t"]),
             "sc_time": iso(dt.datetime.fromtimestamp(f["sc_time"], UTC)) if f["sc_time"] else None,
             "sc_gap_s": (f["sc_time"] - prev_sc) if f["sc_time"] and prev_sc else None,
-            "authenticatelora.CurrentSequenceNumber": b["CurrentSequenceNumber"],
-            "lora.BytesReceived": b["BytesReceived"],
-            "imuManager.AngularVelocity": dict(zip("xyz", b.get("AngularVelocity") or [])),
-            "ina219SysManager.Voltage": b["Voltage"],
+            "ComCcsdsLora.authenticatelora.CurrentSequenceNumber": b["CurrentSequenceNumber"],
+            "ReferenceDeployment.lora.BytesReceived": b["BytesReceived"],
+            "ReferenceDeployment.imuManager.AngularVelocity": dict(zip("xyz", b.get("AngularVelocity") or [])),
+            "ReferenceDeployment.ina219SysManager.Voltage": b["Voltage"],
             "stations": ([{"station": r["station"], "t": iso(r["t"]), "rssi_dbm": r["rssi"], "snr_db": r["snr"],
                            "freq_error_hz": r["freq_error"]} for r in rx] if rx is not None
                          else f"{f['n_stations']} station(s), details pending"),
