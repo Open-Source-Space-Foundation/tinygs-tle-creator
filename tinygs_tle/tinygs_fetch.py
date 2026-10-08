@@ -60,10 +60,16 @@ async def fetch(sat: str, out: str, auth_state: str | None = None) -> None:
             wait_until="domcontentloaded",
             timeout=60000,
         )
-        try:
-            await asyncio.wait_for(got_packets.wait(), timeout=60)
-        except asyncio.TimeoutError:
-            pass
+        # The SPA sometimes never issues /v4/packets on a slow load; reload up to
+        # twice before giving up.
+        for attempt in range(3):
+            try:
+                await asyncio.wait_for(got_packets.wait(), timeout=60)
+                break
+            except asyncio.TimeoutError:
+                meta["reloads"] = attempt + 1
+                if attempt < 2:
+                    await page.reload(wait_until="domcontentloaded", timeout=60000)
         await page.wait_for_timeout(3000)
         await browser.close()
 
