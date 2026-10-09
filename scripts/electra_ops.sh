@@ -14,7 +14,7 @@ PIDF="$ROOT/electra_ops.pid"
 LOG="$ROOT/logs/electra_ops.log"
 mkdir -p "$ROOT/logs"
 
-running() { [[ -s "$PIDF" ]] && grep -qa electra_ops "/proc/$(cat "$PIDF")/cmdline" 2>/dev/null; }
+running() { [[ -s "$PIDF" ]] && [[ "$(cat "$PIDF")" != "$$" ]] && { cat "/proc/$(cat "$PIDF")/cmdline" 2>/dev/null | tr "\0" " " | grep -q "electra_ops.* run"; }; }
 
 case "${1:-}" in
   start)
