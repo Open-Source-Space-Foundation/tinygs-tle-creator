@@ -445,10 +445,40 @@ def uplinks():
         if not n.endswith(".json"):
             continue
         try:
-            out[os.path.basename(n)[:-5]] = json.loads(git("show", f"origin/{UPLINK_BRANCH}:{n}"))
-        except (RuntimeError, ValueError) as e:
+            out[os.path.basename(n)[:-5]] = resolve_windows(json.loads(git("show", f"origin/{UPLINK_BRANCH}:{n}")))
+        except (RuntimeError, ValueError, KeyError) as e:
             log("WARN bad uplink file", n, e)
     return out
+
+
+def resolve_windows(u):
+    """Turn symbolic expect[] windows into timestamps (originals kept in from_label/until_label):
+    'first_command'/'aos' -> AOS, 'los' -> LOS, 'end_of_day' -> the latest timestamped until in the
+    plan, else 06:59Z the day after AOS (end of the LA day)."""
+    p = u.get("pass") or {}
+    exp = u.get("expect") or []
+
+    def ok(x):
+        try:
+            parse_t(x)
+            return True
+        except (TypeError, ValueError):
+            return False
+    untils = [parse_t(e["until"]) for e in exp if ok(e.get("until"))]
+    aos = parse_t(p["aos"]) if ok(p.get("aos")) else None
+    eod = max(untils) if untils else (
+        (aos + dt.timedelta(days=1)).replace(hour=6, minute=59, second=0, microsecond=0) if aos else None)
+    sym = {"first_command": aos, "aos": aos, "los": parse_t(p["los"]) if ok(p.get("los")) else None,
+           "end_of_day": eod}
+    for e in exp:
+        for k in ("from", "until"):
+            v = e.get(k)
+            if v is not None and not ok(v):
+                t = sym.get(str(v))
+                if t is None:
+                    raise ValueError(f"unknown {k} {v!r} in expect {e.get('id')!r}")
+                e[k + "_label"], e[k] = v, iso(t)
+    return u
 
 
 def commit_push(msg, paths):
