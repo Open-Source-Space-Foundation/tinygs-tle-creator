@@ -34,6 +34,7 @@ import glob
 import gzip
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -433,8 +434,16 @@ def sync_ops():
     r = subprocess.run(["git", "-C", OPS, "merge", "-q", "--no-edit", f"origin/{UPLINK_BRANCH}"],
                        capture_output=True, text=True, timeout=120)
     if r.returncode:
-        git("merge", "--abort", check=False)
-        log("WARN merge of", UPLINK_BRANCH, "failed:", r.stderr.strip())
+        # main sometimes carries copies of our own outputs; conflicts there resolve to ours
+        conf = git("diff", "--name-only", "--diff-filter=U", check=False).split()
+        if conf and all(re.match(r"(passes/[^/]+/tinygs/|ops/scraper/)", c) for c in conf):
+            git("checkout", "--ours", "--", *conf)
+            git("add", "--", *conf)
+            git("-c", "user.name=Claude", "-c", "user.email=noreply@anthropic.com", "commit", "-q", "--no-edit")
+            log("merged", UPLINK_BRANCH, "keeping our versions of", len(conf), "scraper file(s)")
+        else:
+            git("merge", "--abort", check=False)
+            log("WARN merge of", UPLINK_BRANCH, "failed:", r.stderr.strip() or r.stdout.strip(), conf)
 
 
 def uplinks():
