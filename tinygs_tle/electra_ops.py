@@ -59,7 +59,7 @@ STATION = dict(lat=34.0047840, lon=-118.3376408, alt_m=200.0)
 BASE_CADENCE_MIN = 45
 UPLINK_CADENCE_MIN = 20
 MARKER_CADENCE_MIN = 8  # inside fast-Beacon marker windows only
-PASS_CADENCE_MIN = 3  # armed uplink pass, AOS-5..LOS+15: 8 s telemetry fills a 50-frame page in ~3-4 min
+PASS_CADENCE_MIN = 2  # armed uplink pass, AOS-5..LOS+15: 8 s Beacons plus probe replies fill a 50-frame page in ~3 min
 GAP_RETRY_MIN = 20
 POLL_MIN = 10
 ORBIT_MIN = 95
