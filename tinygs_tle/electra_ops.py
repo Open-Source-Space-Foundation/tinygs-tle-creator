@@ -193,6 +193,8 @@ def fprime():
                 git("fetch", "-q", "origin", DICT_REF.split(":")[0].split("/", 1)[1], check=False)
                 with open(path, "w") as f:
                     f.write(git("show", DICT_REF))
+            if f"{OPS}/tools" not in sys.path:  # tinygs_pass imports its sibling flight_dict
+                sys.path.insert(0, f"{OPS}/tools")
             spec = importlib.util.spec_from_file_location("tinygs_pass", f"{OPS}/tools/tinygs_pass.py")
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
