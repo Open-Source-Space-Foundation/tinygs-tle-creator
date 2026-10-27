@@ -16,6 +16,7 @@ Subcommands:
   scrape     one TinyGS fetch now (+ a background detail batch)
   analyze    rebuild STATUS.md and pass results from the data on disk
   tick       one loop iteration
+  publish    after a scripts/cloud.sh cycle run elsewhere: analyze, commit, push (no TinyGS loads)
 
 Scrape schedule (conservative; every scrape is one TinyGS page load):
   - every BASE_CADENCE_MIN (45 min)
@@ -497,8 +498,8 @@ def commit_push(msg, paths):
     if not git("diff", "--cached", "--name-only").strip():
         return False
     git("-c", "user.name=Claude", "-c", "user.email=noreply@anthropic.com", "commit", "-q", "-m", msg, "-m",
-        "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
-        "Claude-Session: https://claude.ai/code/session_013Bc5t1hD67bMMCUn8z4Yxn")
+        os.environ.get("ELECTRA_OPS_TRAILER", "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
+                       "Claude-Session: https://claude.ai/code/session_013Bc5t1hD67bMMCUn8z4Yxn"))
     for d in (2, 4, 8, 16, 0):
         try:
             if subprocess.run(["git", "-C", OPS, "push", "-q", "-u", "origin", OPS_BRANCH], timeout=120).returncode == 0:
@@ -1201,8 +1202,7 @@ def in_marker_window(state, t_now):
     return False
 
 
-def tick(state):
-    t_now = now()
+def refresh_uplinks(state):
     try:
         sync_ops()
         ups = uplinks()
@@ -1212,6 +1212,9 @@ def tick(state):
         state["uplinks_cache"] = ups
     except RuntimeError as e:
         log("WARN repo sync failed:", e)
+
+
+def refresh_predictions(state, t_now):
     lp = state.get("last_predict")
     if not lp or t_now - parse_t(lp) > dt.timedelta(hours=24) or not os.path.exists(f"{OPS}/ops/scraper/la-passes.json"):
         try:
@@ -1223,6 +1226,28 @@ def tick(state):
             log("predicted", len(doc["passes"]), "passes")
         except Exception as e:  # noqa: BLE001
             log("WARN prediction failed:", e)
+
+
+def publish(state):
+    """One scheduled run after `scripts/cloud.sh cycle` and `save` (GitHub Actions on the station runner):
+    no TinyGS page loads. Refresh uplinks and pass predictions, record the newest snapshot as the last good
+    scrape, rebuild STATUS.md and the pass files, commit and push to OPS_BRANCH."""
+    t_now = now()
+    refresh_uplinks(state)
+    refresh_predictions(state, t_now)
+    snaps = snapshot_files()
+    if snaps:
+        stamp = os.path.basename(snaps[-1]).split("_")[-1].split(".")[0]
+        state["last_ok_scrape"] = iso(dt.datetime.strptime(stamp, "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC))
+    out_paths, msgs, alert = analyze(state)
+    save_state(state)
+    commit_all(state, out_paths, msgs, alert)
+
+
+def tick(state):
+    t_now = now()
+    refresh_uplinks(state)
+    refresh_predictions(state, t_now)
     why = due_scrape(state, t_now)
     if why:
         log("scrape:", why)
@@ -1265,7 +1290,7 @@ def run():
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["run", "tick", "predict", "scrape", "analyze"])
+    ap.add_argument("cmd", choices=["run", "tick", "predict", "scrape", "analyze", "publish"])
     a = ap.parse_args()
     os.makedirs(ROOT, exist_ok=True)
     state = load_state()
@@ -1279,6 +1304,8 @@ def main():
         print(json.dumps(doc["passes"], indent=1))
     elif a.cmd == "scrape":
         scrape(state)
+    elif a.cmd == "publish":
+        publish(state)
     elif a.cmd == "analyze":
         out_paths, msgs, alert = analyze(state)
         print(out_paths, msgs, alert)
