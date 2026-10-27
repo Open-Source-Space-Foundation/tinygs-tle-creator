@@ -1235,10 +1235,15 @@ def publish(state):
     t_now = now()
     refresh_uplinks(state)
     refresh_predictions(state, t_now)
-    snaps = snapshot_files()
-    if snaps:
-        stamp = os.path.basename(snaps[-1]).split("_")[-1].split(".")[0]
-        state["last_ok_scrape"] = iso(dt.datetime.strptime(stamp, "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC))
+    for f in reversed(snapshot_files()):  # cycle.sh also keeps snapshots the tracker rejected; skip those
+        m = re.search(r"_(\d{8}T\d{6}Z)", os.path.basename(f))
+        try:
+            v = json.load(gzip.open(f)).get(FEED)
+        except (OSError, ValueError, EOFError, AttributeError):
+            continue
+        if m and (v.get("packets") if isinstance(v, dict) else v):
+            state["last_ok_scrape"] = iso(dt.datetime.strptime(m[1], "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC))
+            break
     out_paths, msgs, alert = analyze(state)
     save_state(state)
     commit_all(state, out_paths, msgs, alert)
