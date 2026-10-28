@@ -971,22 +971,27 @@ def _v_state(b):
 
 
 def _switchover(f, by_sc):
-    """True when f is the lone in-band Beacon between a solar and a battery Beacon (either order)."""
-    if not f["sc_time"]:
-        return False
-    i = next((k for k, g in enumerate(by_sc) if g["sc_time"] == f["sc_time"]), None)
-    if i is None or i == 0 or i == len(by_sc) - 1:
+    """True when f is the lone in-band Beacon between a solar and a battery Beacon (either order).
+
+    by_sc is keyed and sorted on (BootCount, sc_time); neighbours must share f's boot and lie within
+    SWITCH_WINDOW_S of f by both spacecraft and receipt time, so a clock reset can't pair Beacons across boots."""
+    k = (f["beacon"]["BootCount"], f["sc_time"])
+    i = next((n for n, g in enumerate(by_sc) if (g["beacon"]["BootCount"], g["sc_time"]) == k), None)
+    if not f["crc_ok"] or not f["sc_time"] or i is None or i == 0 or i == len(by_sc) - 1:
         return False
     a, b = by_sc[i - 1], by_sc[i + 1]
-    if f["sc_time"] - a["sc_time"] > SWITCH_WINDOW_S or b["sc_time"] - f["sc_time"] > SWITCH_WINDOW_S:
-        return False
+    for g in (a, b):
+        if (g["beacon"]["BootCount"] != k[0] or abs(g["sc_time"] - f["sc_time"]) > SWITCH_WINDOW_S
+                or abs((g["t"] - f["t"]).total_seconds()) > SWITCH_WINDOW_S):
+            return False
     return {_v_state(a["beacon"]), _v_state(b["beacon"])} == {"solar", "battery"}
 
 
 def write_status(state, frames):
     t_now = now()
     bea = [f for f in frames if f["beacon"]]
-    by_sc = sorted({f["sc_time"]: f for f in bea if f["crc_ok"] and f["sc_time"]}.values(), key=lambda f: f["sc_time"])
+    by_sc = [f for _, f in sorted({(f["beacon"]["BootCount"], f["sc_time"]): f
+                                   for f in bea if f["crc_ok"] and f["sc_time"]}.items())]
     alerts, vnotes, switches = [], [], []
     for f in bea:
         if f["t"] < t_now - dt.timedelta(days=2):
