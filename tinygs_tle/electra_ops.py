@@ -72,6 +72,12 @@ HEARTBEAT_H = 6
 BOOT_BASE, MODE_OK, V_MIN = 38, 2, 9.5
 V_BATT_MIN = 7.4  # 2S Li-ion, about 3.7 V per cell
 V_BATT_BAND_MAX = 8.5  # battery-connected readings sit at 8.3-8.42 V
+# The sys INA219 averages 16 conversions (badc 12, ~8.5 ms), so a reading that spans the battery switching
+# in or out lands between the solar (>= 9.5 V, 0 W) and battery readings. 2 such samples in 16,805 Beacons
+# (10-06..10-28), each alone between a solar and a battery Beacon. A real fault holds for longer than one
+# Beacon, so a lone in-band sample is a switch-over only when both neighbours within SWITCH_WINDOW_S are
+# received and sit on opposite sides; a missing neighbour or two in-band samples in a row still alert.
+SWITCH_WINDOW_S = 40  # Beacons come every 8-32 s
 
 FIELDS = {  # handoff short name -> our key
     "CurrentSequenceNumber": "CurrentSequenceNumber",
@@ -956,10 +962,32 @@ def _stats(xs):
 # --------------------------------------------------------------------------- status
 
 
+def _v_state(b):
+    if b["SysPower"] == 0 and b["Voltage"] >= V_MIN:
+        return "solar"
+    if b["SysPower"] > 0 and V_BATT_MIN <= b["Voltage"] <= V_BATT_BAND_MAX:
+        return "battery"
+    return None
+
+
+def _switchover(f, by_sc):
+    """True when f is the lone in-band Beacon between a solar and a battery Beacon (either order)."""
+    if not f["sc_time"]:
+        return False
+    i = next((k for k, g in enumerate(by_sc) if g["sc_time"] == f["sc_time"]), None)
+    if i is None or i == 0 or i == len(by_sc) - 1:
+        return False
+    a, b = by_sc[i - 1], by_sc[i + 1]
+    if f["sc_time"] - a["sc_time"] > SWITCH_WINDOW_S or b["sc_time"] - f["sc_time"] > SWITCH_WINDOW_S:
+        return False
+    return {_v_state(a["beacon"]), _v_state(b["beacon"])} == {"solar", "battery"}
+
+
 def write_status(state, frames):
     t_now = now()
     bea = [f for f in frames if f["beacon"]]
-    alerts, vnotes = [], []
+    by_sc = sorted({f["sc_time"]: f for f in bea if f["crc_ok"] and f["sc_time"]}.values(), key=lambda f: f["sc_time"])
+    alerts, vnotes, switches = [], [], []
     for f in bea:
         if f["t"] < t_now - dt.timedelta(days=2):
             continue
@@ -977,6 +1005,8 @@ def write_status(state, frames):
             if b["Voltage"] >= V_BATT_MIN and (b["SysPower"] > 0 or b["Voltage"] <= V_BATT_BAND_MAX):
                 if f["crc_ok"]:
                     vnotes.append(f)
+            elif V_BATT_MIN <= b["Voltage"] and _switchover(f, by_sc):
+                switches.append(f)
             else:
                 why.append(f"Voltage {b['Voltage']} V < {V_MIN} V (SysPower {b['SysPower']} W)")
         if why and f["crc_ok"]:
@@ -996,6 +1026,11 @@ def write_status(state, frames):
                   "(ops README: real battery about 8.4 V; 10-11 V with Power 0 is the solar reading with the "
                   f"protection circuit open), so it is not treated as < {V_MIN} V. Readings below {V_BATT_MIN} V, "
                   f"or between {V_BATT_BAND_MAX} and {V_MIN} V with SysPower 0, do alert.", ""]
+    if switches:
+        lines += [f"Switch-over note (not an alert): {len(switches)} lone Beacon(s) in the last 48 h read between "
+                  "a solar and a battery Beacon, as the battery switched in or out mid-reading: "
+                  + ", ".join(f"{iso(f['t'])} {f['beacon']['Voltage']} V" for f in switches[-5:])
+                  + f". Two in a row, or one without both neighbours within {SWITCH_WINDOW_S} s, still alert.", ""]
     lines += [
         "# TinyGS scraper status (PROVES Electra, NORAD 69795)",
         "",
